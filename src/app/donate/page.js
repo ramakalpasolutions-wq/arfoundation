@@ -1,7 +1,7 @@
 // src/app/donate/page.js
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import UseAnimations from "react-useanimations";
@@ -9,7 +9,8 @@ import heart from "react-useanimations/lib/heart";
 import copy from "react-useanimations/lib/copy";
 import { FaUniversity, FaPhone, FaHandHoldingHeart, FaCreditCard } from "react-icons/fa";
 
-export default function Donate() {
+// Separate component that uses useSearchParams
+function DonateContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const paramName = searchParams?.get("name") ?? "";
@@ -83,7 +84,7 @@ export default function Donate() {
   const quickAmounts = [500, 1000, 2000, 5000];
 
   return (
-    <div className="min-h-screen  py-8 sm:py-12">
+    <div className="min-h-screen py-8 sm:py-12">
       <section className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <motion.div
@@ -211,10 +212,6 @@ export default function Donate() {
                   <span>Need Help?</span>
                 </motion.a>
               </div>
-
-              {/* <p className="text-xs text-[#d5c08a] text-center">
-                Your donation details are secure and will be used only for transaction purposes.
-              </p> */}
             </form>
           </motion.div>
 
@@ -333,41 +330,22 @@ export default function Donate() {
                 </div>
               </motion.div>
             </div>
-
-            {/* <div className="mt-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
-              <p className="text-sm text-blue-200 leading-relaxed">
-                💡 <strong>Tip:</strong> Use the QR code for quick UPI payment, or manually transfer using the bank details above.
-              </p>
-            </div> */}
           </motion.aside>
         </div>
-
-        {/* Impact Section */}
-        {/* <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-          className="mt-12 glass-card p-6 md:p-8 text-center"
-        >
-          <h3 className="text-2xl font-bold text-[#f7e7b7] mb-4">Your Impact</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { amount: "₹500", impact: "Provides educational materials for 5 children" },
-              { amount: "₹1000", impact: "Sponsors a medical checkup camp" },
-              { amount: "₹5000", impact: "Feeds 50 families for a week" },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                className="p-4 rounded-xl bg-black/30 border border-[#c9a35e]/20"
-                whileHover={{ scale: 1.03, y: -3 }}
-              >
-                <div className="text-2xl font-bold text-[#f8d46a] mb-2">{item.amount}</div>
-                <div className="text-sm text-[#f5f5f1]">{item.impact}</div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div> */}
       </section>
     </div>
+  );
+}
+
+// Main component with Suspense wrapper
+export default function Donate() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-[#f8d46a] text-xl">Loading...</div>
+      </div>
+    }>
+      <DonateContent />
+    </Suspense>
   );
 }
