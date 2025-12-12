@@ -109,16 +109,16 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
               {src ? (
                 <img
                   src={src}
-                  alt=""
-                  className="w-full h-full object-cover"
+                  alt={`Slide ${i + 1}`}
+                  className="w-full h-full object-contain"  // ✅ This shows the full image
                   draggable={false}
                 />
-
               ) : null}
             </motion.div>
           );
         })}
       </div>
+
 
       {/* Navigation Buttons */}
       <div className="absolute inset-0 flex items-center justify-between px-4 sm:px-8 pointer-events-none z-20">
@@ -155,8 +155,8 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
               key={i}
               onClick={() => goTo(i)}
               className={`rounded-full transition-all backdrop-blur-sm ${index === i
-                  ? "w-12 h-3 bg-gradient-to-r from-[#c9a35e] to-[#f8d46a]"
-                  : "w-3 h-3 bg-white/40 hover:bg-white/60"
+                ? "w-12 h-3 bg-gradient-to-r from-[#c9a35e] to-[#f8d46a]"
+                : "w-3 h-3 bg-white/40 hover:bg-white/60"
                 }`}
               aria-label={`go-to-${i + 1}`}
               whileHover={{ scale: 1.3 }}

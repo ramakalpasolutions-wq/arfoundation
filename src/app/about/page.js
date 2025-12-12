@@ -362,7 +362,7 @@ export default function About() {
         </motion.div>
 
         {/* GALLERY SECTION (Replacing Milestones) */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.5 }}
@@ -375,12 +375,12 @@ export default function About() {
             <p className="text-[#f5f5f1] max-w-2xl mx-auto">
               Capturing moments of change and impact
             </p>
-          </div>
+          </div> */}
 
-          <div className="glass-card p-6 md:p-8">
-            <div className="space-y-6">
+          {/* <div className="glass-card p-6 md:p-8"> */}
+            {/* <div className="space-y-6"> */}
               {/* Photo Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 {[
                   { src: "/images/gallery-1.jpg", alt: "Community Event 1" },
                   { src: "/images/gallery-2.jpg", alt: "Education Program" },
@@ -401,19 +401,19 @@ export default function About() {
                         alt={photo.alt}
                         className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
                       />
-                    </div>
+                    </div> */}
                     {/* Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
+                    {/* <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
                       <span className="text-white text-xs md:text-sm font-semibold text-center">
                         {photo.alt}
                       </span>
                     </div>
                   </motion.div>
                 ))}
-              </div>
+              </div> */}
 
               {/* View Gallery Button */}
-              <motion.div
+              {/* <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.2 }}
@@ -432,7 +432,7 @@ export default function About() {
               </motion.div>
             </div>
           </div>
-        </motion.div>
+        </motion.div> */}
 
         {/* CTA SECTION */}
         <motion.div
