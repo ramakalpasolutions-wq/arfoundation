@@ -34,12 +34,12 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
 
   const safeSlides = Array.isArray(slides)
     ? slides
-        .map((s) => {
-          if (typeof s === "string") return s;
-          const url = getImgUrlSafe(s);
-          return url;
-        })
-        .filter(Boolean)
+      .map((s) => {
+        if (typeof s === "string") return s;
+        const url = getImgUrlSafe(s);
+        return url;
+      })
+      .filter(Boolean)
     : [];
 
   useEffect(() => {
@@ -84,7 +84,7 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
   if (!safeSlides || safeSlides.length === 0) return null;
 
   return (
-    <motion.section 
+    <motion.section
       className="relative w-full overflow-hidden select-none rounded-3xl shadow-2xl"
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -92,7 +92,7 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
     >
       {/* Gradient overlay for better text readability */}
       <div className="absolute  inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 z-[5] pointer-events-none rounded-3xl" />
-      
+
       <div className="relative w-full" style={{ height }}>
         {safeSlides.map((src, i) => {
           return (
@@ -101,7 +101,7 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
               className={`absolute inset-0 flex items-center justify-center ${index === i ? "z-10" : "z-0"}`}
               style={{ pointerEvents: "none" }}
               initial={{ opacity: 0 }}
-              animate={{ 
+              animate={{
                 opacity: index === i ? 1 : 0
               }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
@@ -110,9 +110,10 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
                 <img
                   src={src}
                   alt=""
-                  className="w-full h-full object-cover" style={{width:"30%",margintop:"10px"}}
+                  className="w-full h-full object-cover"
                   draggable={false}
                 />
+
               ) : null}
             </motion.div>
           );
@@ -153,11 +154,10 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
             <motion.button
               key={i}
               onClick={() => goTo(i)}
-              className={`rounded-full transition-all backdrop-blur-sm ${
-                index === i 
-                  ? "w-12 h-3 bg-gradient-to-r from-[#c9a35e] to-[#f8d46a]" 
+              className={`rounded-full transition-all backdrop-blur-sm ${index === i
+                  ? "w-12 h-3 bg-gradient-to-r from-[#c9a35e] to-[#f8d46a]"
                   : "w-3 h-3 bg-white/40 hover:bg-white/60"
-              }`}
+                }`}
               aria-label={`go-to-${i + 1}`}
               whileHover={{ scale: 1.3 }}
               whileTap={{ scale: 0.9 }}
@@ -186,7 +186,7 @@ export default function Home() {
   const programsRef = useRef(null);
   const youtubeRef = useRef(null);
   const statsRef = useRef(null);
-  
+
   const isHeroTextInView = useInView(heroTextRef, { once: true, margin: "-50px" });
   const isProgramsInView = useInView(programsRef, { once: true, margin: "-100px" });
   const isYoutubeInView = useInView(youtubeRef, { once: true, margin: "-50px" });
@@ -248,11 +248,11 @@ export default function Home() {
     };
   }, []);
 
- const allYoutubeItems =
-  Object.values(galleryForHome || {})
-    .flat()
-    .filter(item => item?.youtube && item?.url)
-    .map(item => item.url);
+  const allYoutubeItems =
+    Object.values(galleryForHome || {})
+      .flat()
+      .filter(item => item?.youtube && item?.url)
+      .map(item => item.url);
 
 
   // Animation variants
@@ -277,20 +277,20 @@ export default function Home() {
   };
 
   const programs = [
-    { 
-      title: "Education Support", 
+    {
+      title: "Education Support",
       desc: "Helping children continue their education with resources and scholarships.",
       icon: FaGraduationCap,
       color: "from-blue-500 to-cyan-500"
     },
-    { 
-      title: "Healthcare Camps", 
+    {
+      title: "Healthcare Camps",
       desc: "Free medical checkups and health awareness drives in rural areas.",
       icon: FaUserMd,
       color: "from-green-500 to-emerald-500"
     },
-    { 
-      title: "Food Distribution", 
+    {
+      title: "Food Distribution",
       desc: "Providing nutritious meals to families in need.",
       icon: FaUtensils,
       color: "from-orange-500 to-red-500"
@@ -305,7 +305,7 @@ export default function Home() {
       </div>
 
       {/* Hero Text Section with Floating Elements */}
-      <motion.section 
+      <motion.section
         ref={heroTextRef}
         className="py-12 sm:py-16 relative"
         initial="hidden"
@@ -316,7 +316,7 @@ export default function Home() {
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
             className="absolute top-20 left-10 w-72 h-72 bg-[#f8d46a]/10 rounded-full blur-3xl"
-            animate={{ 
+            animate={{
               scale: [1, 1.2, 1],
               opacity: [0.3, 0.5, 0.3]
             }}
@@ -324,7 +324,7 @@ export default function Home() {
           />
           <motion.div
             className="absolute bottom-20 right-10 w-96 h-96 bg-[#c9a35e]/10 rounded-full blur-3xl"
-            animate={{ 
+            animate={{
               scale: [1.2, 1, 1.2],
               opacity: [0.3, 0.5, 0.3]
             }}
@@ -333,7 +333,7 @@ export default function Home() {
         </div>
 
         <div className="max-w-5xl mx-auto text-center px-4 sm:px-6 relative z-10">
-          <motion.h1 
+          <motion.h1
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold mb-6 text-[#f7e7b7] leading-tight"
             variants={itemVariants}
           >
@@ -347,7 +347,7 @@ export default function Home() {
             <h2 className="hero-caption text-2xl sm:text-3xl md:text-4xl mb-4 text-[#f5f5f1] font-light">
               Empowering Lives Through Compassion
             </h2>
-            <motion.div 
+            <motion.div
               className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#c9a35e] to-transparent"
               initial={{ scaleX: 0 }}
               animate={isHeroTextInView ? { scaleX: 1 } : {}}
@@ -355,14 +355,14 @@ export default function Home() {
             />
           </motion.div>
 
-          <motion.p 
+          <motion.p
             className="text-[#f5f5f1] text-base sm:text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed"
             variants={itemVariants}
           >
             EV Foundation supports communities through education, healthcare, and empowerment initiatives.
           </motion.p>
 
-          <motion.div 
+          <motion.div
             className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6"
             variants={itemVariants}
           >
@@ -370,8 +370,8 @@ export default function Home() {
               whileHover={{ scale: 1.05, y: -5 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Link 
-                href="/donate" 
+              <Link
+                href="/donate"
                 className="group relative w-full sm:w-auto text-center bg-gradient-to-r from-[#f8d46a] to-[#f8d46a] text-black px-8 py-4 rounded-full text-lg font-bold shadow-2xl inline-flex items-center justify-center gap-3 overflow-hidden"
               >
                 <span className="relative z-10">Donate Now</span>
@@ -389,8 +389,8 @@ export default function Home() {
               whileHover={{ scale: 1.05, y: -5 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Link 
-                href="/about" 
+              <Link
+                href="/about"
                 className="w-full sm:w-auto text-center inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full border-2 border-[#c9a35e] font-bold text-[#f5f5f1] hover:bg-[#c9a35e]/20 backdrop-blur-sm transition-all duration-300 text-lg shadow-lg"
               >
                 <span>About Us</span>
@@ -447,83 +447,83 @@ export default function Home() {
 
       {/* YouTube Videos Section - Always visible */}
       <section ref={youtubeRef} className="py-12 sm:py-16 max-w-6xl mx-auto px-4 sm:px-6">
-  <motion.div
-    initial={{ opacity: 0, y: -30 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.7 }}
-    className="text-center mb-12"
-  >
-    <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[#f7e7b7] mb-4">
-      YouTube Videos
-    </h2>
-    <p className="text-[#f5f5f1] text-lg max-w-2xl mx-auto">
-      Watch how we're making a difference in communities
-    </p>
-  </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[#f7e7b7] mb-4">
+            YouTube Videos
+          </h2>
+          <p className="text-[#f5f5f1] text-lg max-w-2xl mx-auto">
+            Watch how we're making a difference in communities
+          </p>
+        </motion.div>
 
-  {allYoutubeItems.length === 0 ? (
-    <motion.div 
-      className="text-center text-base text-slate-400 mb-6 py-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-    >
-      No YouTube videos yet
-    </motion.div>
-  ) : (
-    <motion.div 
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-      variants={containerVariants}
-      initial="visible"
-      animate="visible"
-    >
-      {allYoutubeItems.map((url, idx) => {
-        let embed = url;
-        try {
-          const u = new URL(url);
-          if (u.hostname.includes("youtube.com")) {
-            const v = u.searchParams.get("v");
-            if (v) embed = `https://www.youtube.com/embed/${v}`;
-          } else if (u.hostname.includes("youtu.be")) {
-            const id = u.pathname.replace("/", "");
-            embed = `https://www.youtube.com/embed/${id}`;
-          }
-        } catch (e) {}
-
-        return (
+        {allYoutubeItems.length === 0 ? (
           <motion.div
-            key={idx}
-            className="group relative p-1 rounded-2xl bg-gradient-to-br from-[#c9a35e] to-[#f8d46a]"
-            variants={itemVariants}
-            whileHover={{ scale: 1.03, y: -5 }}
+            className="text-center text-base text-slate-400 mb-6 py-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <div className="p-5 rounded-2xl bg-black/90 backdrop-blur-md h-full">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="font-semibold text-[#f7e7b7]">Video {idx + 1}</span>
-              </div>
-              <div className="w-full aspect-video rounded-xl overflow-hidden shadow-2xl">
-                <iframe
-                  title={`yt-${idx}`}
-                  src={embed}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full"
-                />
-              </div>
-            </div>
+            No YouTube videos yet
           </motion.div>
-        );
-      })}
-    </motion.div>
-  )}
-</section>
+        ) : (
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={containerVariants}
+            initial="visible"
+            animate="visible"
+          >
+            {allYoutubeItems.map((url, idx) => {
+              let embed = url;
+              try {
+                const u = new URL(url);
+                if (u.hostname.includes("youtube.com")) {
+                  const v = u.searchParams.get("v");
+                  if (v) embed = `https://www.youtube.com/embed/${v}`;
+                } else if (u.hostname.includes("youtu.be")) {
+                  const id = u.pathname.replace("/", "");
+                  embed = `https://www.youtube.com/embed/${id}`;
+                }
+              } catch (e) { }
+
+              return (
+                <motion.div
+                  key={idx}
+                  className="group relative p-1 rounded-2xl bg-gradient-to-br from-[#c9a35e] to-[#f8d46a]"
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.03, y: -5 }}
+                >
+                  <div className="p-5 rounded-2xl bg-black/90 backdrop-blur-md h-full">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                      <span className="font-semibold text-[#f7e7b7]">Video {idx + 1}</span>
+                    </div>
+                    <div className="w-full aspect-video rounded-xl overflow-hidden shadow-2xl">
+                      <iframe
+                        title={`yt-${idx}`}
+                        src={embed}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+      </section>
 
 
       {/* YouTube Modal (kept for compatibility) */}
       {selectedYoutube && (
-        <motion.section 
+        <motion.section
           className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -539,8 +539,8 @@ export default function Home() {
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-2xl font-bold text-[#f7e7b7]">Embedded Video</h3>
-              <motion.button 
-                onClick={() => setSelectedYoutube(null)} 
+              <motion.button
+                onClick={() => setSelectedYoutube(null)}
                 className="px-6 py-3 bg-[#c9a35e] hover:bg-[#f8d46a] text-white rounded-full font-bold transition-colors duration-300"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -563,15 +563,15 @@ export default function Home() {
       )}
 
       {/* Programs Section with Enhanced Cards */}
-      <section 
+      <section
         ref={programsRef}
         className="py-16 sm:py-20 relative"
         style={{ background: "var(--background)" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
           <motion.div
-           initial={{ opacity: 0, y: -30 }}
-           animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
 
             transition={{ duration: 0.7 }}
             className="mb-16"
@@ -591,7 +591,7 @@ export default function Home() {
             </p>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
             variants={containerVariants}
             initial="hidden"
@@ -608,7 +608,7 @@ export default function Home() {
                 >
                   {/* Gradient background */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${p.color} opacity-20 group-hover:opacity-30 transition-opacity duration-300`} />
-                  
+
                   {/* Content */}
                   <div className="relative p-8 bg-black/50 backdrop-blur-xl border border-[#c9a35e]/30 group-hover:border-[#c9a35e]/60 transition-all duration-300 h-full">
                     <motion.div
@@ -618,7 +618,7 @@ export default function Home() {
                     >
                       <Icon className="text-5xl text-[#f8d46a]" />
                     </motion.div>
-                    
+
                     <h3 className="font-serif text-2xl sm:text-3xl mb-4 text-[#f7e7b7] group-hover:text-[#f8d46a] transition-colors duration-300">
                       {p.title}
                     </h3>
@@ -650,7 +650,7 @@ export default function Home() {
             })}
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="mt-12"
             initial={{ opacity: 0, y: 30 }}
             animate={isProgramsInView ? { opacity: 1, y: 0 } : {}}
@@ -660,15 +660,15 @@ export default function Home() {
               whileHover={{ scale: 1.05, y: -3 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Link 
-                href="/programs" 
+              <Link
+                href="/programs"
                 className="inline-flex items-center gap-3 mt-6 text-[#f5f5f1] bg-gradient-to-r from-[#c9a35e]/20 to-[#f8d46a]/20 backdrop-blur-sm border-2 border-[#c9a35e] px-8 py-4 rounded-full hover:from-[#c9a35e]/30 hover:to-[#f8d46a]/30 transition-all duration-300 font-bold text-lg shadow-lg"
               >
                 <span>View All Programs</span>
-                <motion.svg 
-                  className="w-6 h-6" 
-                  fill="none" 
-                  stroke="currentColor" 
+                <motion.svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                   animate={{ x: [0, 5, 0] }}
                   transition={{ duration: 1.5, repeat: Infinity }}

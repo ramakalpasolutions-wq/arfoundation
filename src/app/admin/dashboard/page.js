@@ -1,4 +1,3 @@
-// src/app/admin/dashboard/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -16,7 +15,6 @@ import {
   FaYoutube,
   FaHome,
   FaSignOutAlt,
-  FaPlus,
   FaChevronRight,
   FaTimes,
   FaEye,
@@ -71,8 +69,7 @@ export default function AdminPage() {
     return new Set((heroArr || []).map(getImgUrl).filter(Boolean));
   }
 
-  const allowedExts = [".webp", ".jpg", ".jpeg", ".png"];
-
+  const allowedExts = [];
   function isValidImageFile(file) {
     if (!file) return false;
     if (file.type && !file.type.startsWith("image/")) return false;
@@ -108,7 +105,7 @@ export default function AdminPage() {
       try {
         body = text ? JSON.parse(text) : {};
       } catch (parseErr) {
-        console.error("loadGallery: invalid JSON");
+        console.error("loadGallery: invalid JSON:", parseErr, text);
         setGallery({});
         setHeroGallery([]);
         setSelectedEvent("");
@@ -151,6 +148,7 @@ export default function AdminPage() {
     }
   }, [isMounted]);
 
+  // computed helpers for UI
   const heroUrlSet = getHeroUrlSet(heroGallery);
   const events = Object.keys(gallery)
     .filter((k) => !HERO_KEYS.has(k))
@@ -162,35 +160,39 @@ export default function AdminPage() {
   };
 
   // -----------------------
-  // Create folder
+  // Cloudinary direct upload helper
   // -----------------------
-  async function createFolder() {
-    const name = (eventName || "").trim();
-    if (!name) return alert("Enter a new event name to create a folder.");
-    updateStatus("Creating folder...", "info");
-    try {
-      const res = await fetch(API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ createEvent: true, eventName: name }),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || "Failed to create folder");
-      setGallery(body.gallery || (await loadGallery()) || {});
-      setSelectedEvent(name);
-      setEventName("");
-      updateStatus("Folder created successfully", "success");
-    } catch (err) {
-      updateStatus("Error creating folder: " + (err.message || String(err)), "error");
+  async function uploadToCloudinary(file, folder) {
+    const sigRes = await fetch(`/api/upload-signature?folder=${encodeURIComponent(folder)}`);
+    if (!sigRes.ok) throw new Error("Failed to get upload signature");
+    const { timestamp, signature, apiKey, cloudName } = await sigRes.json();
+
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("api_key", apiKey);
+    fd.append("timestamp", timestamp);
+    fd.append("signature", signature);
+    fd.append("folder", folder);
+
+    const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: "POST",
+      body: fd,
+    });
+
+    const json = await uploadRes.json();
+    if (!uploadRes.ok) {
+      throw new Error(json.error?.message || "Cloudinary upload failed");
     }
+    return json;
   }
 
   // -----------------------
-  // Upload images to an event
+  // Upload images to an event (direct to Cloudinary)
   // -----------------------
   async function handleFilesUpload(e) {
     e?.preventDefault?.();
-    const target = useExisting ? selectedEvent : eventName;
+    const targetRaw = useExisting ? selectedEvent : eventName;
+    const target = String(targetRaw || "").trim();
     if (!target) return alert("Please choose or enter an event name.");
     const toUpload = singleFile ? [singleFile] : files;
     if (!toUpload || toUpload.length === 0) return alert("Pick one or more images to upload.");
@@ -206,26 +208,40 @@ export default function AdminPage() {
     if (valid.length === 0)
       return alert("No valid image files to upload. Allowed types: " + (allowedExts.join(", ") || "images"));
 
-    updateStatus("Uploading to event...", "info");
+    updateStatus("Uploading to Cloudinary...", "info");
     try {
-      const fd = new FormData();
-      fd.append("eventName", target);
-      fd.append("hero", "0");
-      for (const f of valid) fd.append("file", f);
+      const uploadedItems = [];
+      let i = 1;
+      for (const f of valid) {
+        updateStatus(`Uploading ${i}/${valid.length}...`, "info");
+        const uploadRes = await uploadToCloudinary(f, `events/${target}`);
+        uploadedItems.push({
+          url: uploadRes.secure_url,
+          public_id: uploadRes.public_id,
+        });
+        i++;
+      }
 
-      const res = await fetch(API, { method: "POST", body: fd });
-      const body = await res.json();
+      const metaRes = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uploaded: uploadedItems, eventName: target }),
+      });
 
-      if (!res.ok) throw new Error(body.error || "Upload failed");
+      const metaBody = await metaRes.json();
+      if (!metaRes.ok) throw new Error(metaBody.error || "Failed to save metadata");
 
-      setGallery(body.gallery || body || (await loadGallery()) || {});
-      setHeroGallery(body.slider || body.home_slider || []);
+      if (metaBody.gallery) setGallery(metaBody.gallery);
+      if (metaBody.slider) setHeroGallery(metaBody.slider);
+      if (!metaBody.gallery && !metaBody.slider) await loadGallery();
+
       setSelectedEvent(target);
       setFiles([]);
       setSingleFile(null);
       setEventName("");
       updateStatus("Uploaded successfully", "success");
     } catch (err) {
+      console.error("handleFilesUpload error:", err);
       updateStatus("Error: " + (err.message || String(err)), "error");
     }
   }
@@ -251,7 +267,6 @@ export default function AdminPage() {
         body: JSON.stringify({ renameEvent: true, oldName: current, newName: newKey }),
       });
       const body = await res.json();
-
       if (!res.ok) throw new Error(body.error || "Server refused rename");
       setGallery(body.gallery || (await loadGallery()) || {});
       setSelectedEvent(newKey);
@@ -375,14 +390,42 @@ export default function AdminPage() {
     setHeroUploading(true);
     updateStatus("Uploading hero images...", "info");
     try {
-      const fd = new FormData();
-      fd.append("hero", "1");
-      for (const f of validHero) fd.append("file", f);
-      const res = await fetch(API, { method: "POST", body: fd });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || "Hero upload failed");
-      setGallery(body.gallery || (await loadGallery()) || {});
-      setHeroGallery(body.slider || body.home_slider || []);
+      const uploaded = [];
+      let i = 1;
+      for (const f of validHero) {
+        updateStatus(`Uploading hero ${i}/${validHero.length}...`, "info");
+        const uploadRes = await uploadToCloudinary(f, `slider`);
+        uploaded.push({ url: uploadRes.secure_url, public_id: uploadRes.public_id });
+        i++;
+      }
+
+      const metaRes = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uploaded, hero: true, eventName: "home_slider" }),
+      });
+
+      let metaBody = {};
+      try {
+        metaBody = await metaRes.json();
+      } catch (e) {
+        console.warn("handleHeroUpload: non-JSON response, reloading gallery", e);
+        await loadGallery();
+        setHeroFiles([]);
+        setHeroPreview(EXAMPLE_LOCAL_PATH);
+        updateStatus("Hero uploaded (server returned non-JSON)", "success");
+        return;
+      }
+
+      if (!metaRes.ok) throw new Error(metaBody.error || "Hero metadata save failed");
+
+      if (metaBody.slider || metaBody.home_slider) {
+        setHeroGallery(metaBody.slider || metaBody.home_slider || []);
+      } else {
+        setGallery(metaBody.gallery || gallery);
+        await loadGallery();
+      }
+
       setHeroFiles([]);
       setHeroPreview(EXAMPLE_LOCAL_PATH);
       updateStatus("Hero uploaded successfully", "success");
@@ -1014,27 +1057,19 @@ export default function AdminPage() {
                 onChange={onHeroFilesChange}
                 className="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-gradient-to-r file:from-[#c9a35e] file:to-[#f8d46a] file:text-black file:font-semibold hover:file:cursor-pointer mb-2"
               />
-              <div className="text-xs text-[#d5c08a] mb-4">{heroFiles.length} selected</div>
 
-              <div className="flex flex-col gap-2">
+              <div className="text-xs text-[#d5c08a] mb-4">{heroFiles.length} file(s) selected</div>
+
+              <div className="flex flex-col gap-3">
                 <motion.button
                   onClick={handleHeroUpload}
                   disabled={heroUploading}
-                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#c9a35e] to-[#f8d46a] text-black font-bold shadow-2xl disabled:opacity-50"
-                  whileHover={{ scale: heroUploading ? 1 : 1.02, y: heroUploading ? 0 : -2 }}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#c9a35e] to-[#f8d46a] text-black font-bold shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  whileHover={{ scale: heroUploading ? 1 : 1.03, y: heroUploading ? 0 : -2 }}
                   whileTap={{ scale: heroUploading ? 1 : 0.98 }}
                 >
-                  {heroUploading ? (
-                    <>
-                      <UseAnimations animation={loading2} size={20} strokeColor="#000" />
-                      <span>Uploading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FaUpload />
-                      <span>Upload Hero</span>
-                    </>
-                  )}
+                  <FaHome />
+                  <span>{heroUploading ? "Uploading..." : "Upload to Carousel"}</span>
                 </motion.button>
 
                 <motion.button
@@ -1043,7 +1078,7 @@ export default function AdminPage() {
                     setHeroPreview(EXAMPLE_LOCAL_PATH);
                   }}
                   className="px-6 py-3 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] font-semibold hover:bg-[#c9a35e]/20 transition-all duration-300"
-                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   Reset
@@ -1053,10 +1088,11 @@ export default function AdminPage() {
 
             {/* Current Hero Images */}
             <div className="lg:col-span-2">
-              <h4 className="text-sm font-bold text-[#f8d46a] mb-4">Current Hero Images</h4>
+              <h4 className="text-lg font-bold text-[#f7e7b7] mb-4">Current Hero Images</h4>
+
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {heroGallery.length === 0 && (
-                  <div className="col-span-full text-center text-gray-400 py-8">No hero images yet</div>
+                  <div className="col-span-full text-center text-[#d5c08a] py-8">No hero images yet</div>
                 )}
 
                 {heroGallery.map((h, i) => {
@@ -1072,23 +1108,25 @@ export default function AdminPage() {
                         <img src={src} className="w-full h-32 object-cover" alt={`hero-${i}`} />
                       ) : (
                         <div className="w-full h-32 bg-gray-800 flex items-center justify-center">
-                          <span className="text-xs text-gray-400">No preview</span>
+                          <span className="text-sm text-gray-400">No preview</span>
                         </div>
                       )}
-                      <div className="p-2 flex items-center justify-between">
+                      <div className="p-3 flex items-center justify-between">
                         <a
                           href={src || url || "#"}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs text-blue-400 hover:text-blue-300 underline"
+                          className="text-sm text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
                         >
-                          View
+                          <FaEye />
+                          <span>View</span>
                         </a>
                         <button
                           onClick={() => deleteImageFromServer("home_slider", url, { hero: true })}
-                          className="text-xs text-red-400 hover:text-red-300 underline"
+                          className="text-sm text-red-400 hover:text-red-300 underline flex items-center gap-1"
                         >
-                          Remove
+                          <FaTrash />
+                          <span>Remove</span>
                         </button>
                       </div>
                     </motion.div>
@@ -1111,102 +1149,87 @@ export default function AdminPage() {
               <FaYoutube className="text-2xl text-[#f8d46a]" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-[#f7e7b7]">YouTube Links</h3>
-              <div className="text-sm text-[#d5c08a]">Add YouTube videos to events</div>
+              <h3 className="text-xl font-bold text-[#f7e7b7]">YouTube Videos</h3>
+              <div className="text-sm text-[#d5c08a]">Add YouTube links to events</div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
+          <div className="space-y-4">
+            <div className="flex gap-3">
               <input
                 value={eventName}
                 onChange={(e) => setEventName(e.target.value)}
-                placeholder="Folder name"
-                className="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] placeholder:text-[#f5f5f1]/40 outline-none focus:ring-2 focus:ring-[#f8d46a] focus:border-[#f8d46a] transition-all duration-300 mb-4"
+                placeholder="Folder name (or select an event)"
+                className="flex-1 px-4 py-3 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] placeholder:text-[#f5f5f1]/40 outline-none focus:ring-2 focus:ring-[#f8d46a] focus:border-[#f8d46a] transition-all duration-300"
               />
-
-              <textarea
-                value={youtubeUrls}
-                onChange={(e) => setYoutubeUrls(e.target.value)}
-                placeholder="Paste YouTube URLs (one per line or comma separated)"
-                className="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] placeholder:text-[#f5f5f1]/40 outline-none focus:ring-2 focus:ring-[#f8d46a] focus:border-[#f8d46a] transition-all duration-300 resize-y min-h-[120px] mb-4"
-              />
-
-              <div className="flex flex-col gap-2">
-                <motion.button
-                  onClick={addYoutubeFolder}
-                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#c9a35e] to-[#f8d46a] text-black font-bold shadow-2xl"
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <FaPlus />
-                  <span>Add YouTube</span>
-                </motion.button>
-
-                <motion.button
-                  onClick={() => {
-                    setEventName("");
-                    setYoutubeUrls("");
-                  }}
-                  className="px-6 py-3 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] font-semibold hover:bg-[#c9a35e]/20 transition-all duration-300"
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Clear
-                </motion.button>
-              </div>
+              <motion.button
+                onClick={addYoutubeFolder}
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#c9a35e] to-[#f8d46a] text-black font-bold shadow-xl hover:shadow-[#f8d46a]/50 transition-all duration-300"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Add YouTube
+              </motion.button>
+              <motion.button
+                onClick={() => { setEventName(""); setYoutubeUrls(""); updateStatus("", "info"); }}
+                className="px-6 py-3 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] font-semibold hover:bg-[#c9a35e]/20 transition-all duration-300"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Clear
+              </motion.button>
             </div>
 
-            <div className="lg:col-span-2">
-              <h4 className="text-sm font-bold text-[#f8d46a] mb-4">YouTube Folders</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {youtubeFolders.length === 0 && (
-                  <div className="col-span-full text-center text-gray-400 py-8">No YouTube links yet</div>
-                )}
+            <textarea
+              value={youtubeUrls}
+              onChange={(e) => setYoutubeUrls(e.target.value)}
+              placeholder="Paste one or more YouTube URLs (newline or comma separated)"
+              className="w-full p-4 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] placeholder:text-[#f5f5f1]/40 outline-none focus:ring-2 focus:ring-[#f8d46a] focus:border-[#f8d46a] transition-all duration-300 resize-y min-h-[100px]"
+            />
 
-                {youtubeFolders.map(([folder, items]) => {
-                  const url = items?.[0]?.url || "";
-                  const thumb = youtubeThumbUrl(url);
-                  return (
-                    <motion.div
-                      key={folder}
-                      className="glass-card p-4 border border-[#c9a35e]/20"
-                      whileHover={{ y: -5 }}
-                    >
-                      <div className="font-semibold text-[#f5f5f1] mb-3">
-                        {folder.replace(/_/g, " ")}
-                      </div>
-                      <div className="h-32 mb-3 rounded-lg overflow-hidden">
-                        {thumb ? (
-                          <img src={thumb} alt={`yt-${folder}`} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                            <span className="text-sm text-gray-400">No thumbnail</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-sm text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
-                        >
-                          <FaYoutube />
-                          <span>Open</span>
-                        </a>
-                        <button
-                          onClick={() => deleteImageFromServer(folder, url)}
-                          className="text-sm text-red-400 hover:text-red-300 underline flex items-center gap-1"
-                        >
-                          <FaTrash />
-                          <span>Remove</span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {youtubeFolders.length === 0 && (
+                <div className="col-span-full text-center text-[#d5c08a] py-8">No YouTube links yet</div>
+              )}
+
+              {youtubeFolders.map(([folder, items]) => {
+                const url = items?.[0]?.url || "";
+                const thumb = youtubeThumbUrl(url);
+                return (
+                  <motion.div
+                    key={folder}
+                    className="glass-card p-4 border border-[#c9a35e]/20"
+                    whileHover={{ y: -5 }}
+                  >
+                    <div className="font-semibold text-[#f5f5f1] mb-3">{folder.replace(/_/g, " ")}</div>
+                    <div className="h-40 mb-3 rounded-lg overflow-hidden">
+                      {thumb ? (
+                        <img src={thumb} alt={`yt-${folder}`} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                          <span className="text-sm text-gray-400">No thumbnail</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2 justify-between">
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-2 bg-gradient-to-r from-[#c9a35e] to-[#f8d46a] text-black rounded-lg text-sm font-semibold hover:shadow-lg transition-all"
+                      >
+                        Open Link
+                      </a>
+                      <button
+                        onClick={() => deleteImageFromServer(folder, url)}
+                        className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-semibold hover:bg-red-500/30 transition-all"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </motion.div>
