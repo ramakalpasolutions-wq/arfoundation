@@ -1,7 +1,7 @@
 // src/app/gallery/page.js
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import UseAnimations from "react-useanimations";
 import loading2 from "react-useanimations/lib/loading2";
@@ -22,8 +22,8 @@ export default function GalleryPage() {
   const [eventImages, setEventImages] = useState([]);
   const [isYoutubeFolder, setIsYoutubeFolder] = useState(false);
 
-  // lightbox
-  const [lightbox, setLightbox] = useState({ open: false, src: "", alt: "" });
+  // lightbox with current index for navigation
+  const [lightbox, setLightbox] = useState({ open: false, src: "", alt: "", currentIndex: -1, totalImages: 0 });
 
   useEffect(() => {
     async function load() {
@@ -73,7 +73,7 @@ export default function GalleryPage() {
     load();
   }, []);
 
-  // ESC closes viewer/lightbox
+  // ESC closes viewer/lightbox, arrows navigate lightbox
   useEffect(() => {
     function handleKey(e) {
       if (e.key === "Escape" || e.key === "Esc") {
@@ -82,11 +82,24 @@ export default function GalleryPage() {
         } else if (viewerOpen) {
           closeEventViewer();
         }
+      } else if (lightbox.open && lightbox.currentIndex >= 0) {
+        // Arrow navigation for lightbox
+        if (e.key === "ArrowLeft" && lightbox.currentIndex > 0) {
+          const prevSrc = typeof eventImages[lightbox.currentIndex - 1] === "string" 
+            ? eventImages[lightbox.currentIndex - 1] 
+            : (eventImages[lightbox.currentIndex - 1]?.optimized || eventImages[lightbox.currentIndex - 1]?.thumb || eventImages[lightbox.currentIndex - 1]?.original || "");
+          setLightbox(prev => ({ ...prev, currentIndex: prev.currentIndex - 1, src: prevSrc }));
+        } else if (e.key === "ArrowRight" && lightbox.currentIndex < lightbox.totalImages - 1) {
+          const nextSrc = typeof eventImages[lightbox.currentIndex + 1] === "string" 
+            ? eventImages[lightbox.currentIndex + 1] 
+            : (eventImages[lightbox.currentIndex + 1]?.optimized || eventImages[lightbox.currentIndex + 1]?.thumb || eventImages[lightbox.currentIndex + 1]?.original || "");
+          setLightbox(prev => ({ ...prev, currentIndex: prev.currentIndex + 1, src: nextSrc }));
+        }
       }
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [lightbox.open, viewerOpen]);
+  }, [lightbox.open, viewerOpen, lightbox.currentIndex, eventImages, lightbox.totalImages]);
 
   // helpers
   const rawKeys = Object.keys(gallery).sort((a, b) => a.localeCompare(b));
@@ -189,14 +202,14 @@ export default function GalleryPage() {
     if (!lightbox.open) document.body.style.overflow = "";
   }
 
-  // lightbox
-  function openLightbox(src, alt = "") {
-    setLightbox({ open: true, src, alt });
+  // lightbox with navigation support
+  function openLightbox(src, alt = "", index = 0) {
+    setLightbox({ open: true, src, alt, currentIndex: index, totalImages: eventImages.length });
     document.body.style.overflow = "hidden";
   }
 
   function closeLightbox() {
-    setLightbox({ open: false, src: "", alt: "" });
+    setLightbox({ open: false, src: "", alt: "", currentIndex: -1, totalImages: 0 });
     if (!viewerOpen) document.body.style.overflow = "";
   }
 
@@ -583,7 +596,7 @@ export default function GalleryPage() {
                       <motion.button
                         key={i}
                         variants={cardVariants}
-                        onClick={() => openLightbox(src)}
+                        onClick={() => openLightbox(src, `photo-${i}`, i)}
                         className="relative group overflow-hidden rounded-xl border-2 border-[#c9a35e]/20 hover:border-[#f8d46a]/60 transition-all duration-300"
                         whileHover={{ scale: 1.05, y: -4 }}
                         whileTap={{ scale: 0.95 }}
@@ -623,12 +636,21 @@ export default function GalleryPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="max-w-screen-xl w-full max-h-[95vh] overflow-auto"
+              className="max-w-screen-xl w-full max-h-[95vh] overflow-auto flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Navigation indicators */}
+              {lightbox.totalImages > 1 && (
+                <div className="absolute top-4 left-4 right-4 flex justify-between z-10 pointer-events-none">
+                  <span className="text-white/80 text-sm pointer-events-none">
+                    {lightbox.currentIndex + 1} / {lightbox.totalImages}
+                  </span>
+                </div>
+              )}
+
               <motion.button
                 onClick={closeLightbox}
-                className="flex items-center gap-2 px-4 py-2 mb-4 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 border border-white/10 text-white font-semibold transition-all duration-300"
+                className="flex items-center gap-2 px-4 py-2 absolute top-4 right-4 z-10 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 border border-white/10 text-white font-semibold transition-all duration-300"
                 whileHover={{ scale: 1.05, x: -5 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -637,12 +659,13 @@ export default function GalleryPage() {
               </motion.button>
 
               <motion.img
+                key={lightbox.src}
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
                 src={lightbox.src}
                 alt={lightbox.alt || "photo"}
-                className="w-full h-auto rounded-2xl border-4 border-[#c9a35e]/30 shadow-2xl"
-                style={{ objectFit: "contain", maxHeight: "85vh" }}
+                className="w-full h-auto rounded-2xl border-4 border-[#c9a35e]/30 shadow-2xl max-h-[85vh] max-w-full"
+                style={{ objectFit: "contain" }}
               />
             </motion.div>
           </motion.div>

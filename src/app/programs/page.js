@@ -7,7 +7,7 @@ import activity from "react-useanimations/lib/activity";
 import heart from "react-useanimations/lib/heart";
 import alertCircle from "react-useanimations/lib/alertCircle";
 import arrowDown from "react-useanimations/lib/arrowDown";
-import { FaGraduationCap, FaHeartbeat, FaUtensils, FaSeedling } from "react-icons/fa";
+import { FaGraduationCap, FaHeartbeat, FaUtensils, FaVenus  } from "react-icons/fa";
 
 export default function Programs() {
   const programs = [
@@ -35,13 +35,13 @@ export default function Programs() {
       emoji: "🍲",
       stats: { number: "10K+", label: "Meals Distributed" },
     },
-    {
-      title: "Rural Development",
-      desc: "Sanitation, water, livelihood training and community infrastructure projects.",
-      icon: FaSeedling,
+   {
+      title: "Women's Empowerment",
+      desc: "Skill training, microfinance, self-help groups, and livelihood programs for women.",
+      icon: FaVenus,
       color: "from-purple-500 to-pink-500",
-      emoji: "🏘️",
-      stats: { number: "30+", label: "Communities Reached" },
+      emoji: "💪♀️",
+      stats: { number: "200+", label: "Women Empowered" },
     },
   ];
 

@@ -15,39 +15,40 @@ export default function About() {
   const [visionOpen, setVisionOpen] = useState(true);
   const [missionOpen, setMissionOpen] = useState(false);
 
-  const stats = [
-    { icon: "👥", number: "10,000+", label: "Lives Touched", color: "from-blue-500 to-cyan-500" },
-    { icon: "🎯", number: "500+", label: "Projects Completed", color: "from-green-500 to-emerald-500" },
-    { icon: "🏘️", number: "50+", label: "Communities Served", color: "from-orange-500 to-red-500" },
-    { icon: "🤝", number: "100+", label: "Active Volunteers", color: "from-purple-500 to-pink-500" },
-  ];
+  // const stats = [
+  //   { icon: "👥", number: "10,000+", label: "Lives Touched", color: "from-blue-500 to-cyan-500" },
+  //   { icon: "🎯", number: "500+", label: "Projects Completed", color: "from-green-500 to-emerald-500" },
+  //   { icon: "🏘️", number: "50+", label: "Communities Served", color: "from-orange-500 to-red-500" },
+  //   { icon: "🤝", number: "100+", label: "Active Volunteers", color: "from-purple-500 to-pink-500" },
+  // ];
 
-  const coreValues = [
+const coreValues = [
     {
       icon: FaHandHoldingHeart,
       title: "Compassion",
-      desc: "We lead with empathy and care for every individual we serve.",
+      desc: "We serve with genuine empathy, dignity, and unwavering commitment to those in need.",
       color: "from-red-500 to-pink-500",
     },
     {
       icon: FaUsers,
-      title: "Community First",
-      desc: "Building strong, self-reliant communities through collaborative efforts.",
+      title: "Impact Driven",
+      desc: "Focused on creating measurable, sustainable change through impact-based programs.",
       color: "from-blue-500 to-cyan-500",
     },
     {
       icon: FaStar,
       title: "Transparency",
-      desc: "Operating with complete openness and accountability in all our work.",
+      desc: "Maintaining complete openness with full accountability in every operation and decision.",
       color: "from-yellow-500 to-orange-500",
     },
     {
       icon: FaAward,
       title: "Excellence",
-      desc: "Committed to delivering impactful, high-quality programs and services.",
+      desc: "Delivering world-class programs with innovation, efficiency, and highest standards.",
       color: "from-green-500 to-emerald-500",
     },
   ];
+
 
   const containerVariants = {
     hidden: { opacity: 0 },

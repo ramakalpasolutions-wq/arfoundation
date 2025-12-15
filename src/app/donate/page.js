@@ -123,85 +123,12 @@ function DonateContent() {
                 <div className="p-3 rounded-xl bg-gradient-to-br from-[#c9a35e]/20 to-[#f8d46a]/20">
                   <FaHandHoldingHeart className="text-3xl text-[#f8d46a]" />
                 </div>
-                <h2 className="text-2xl font-bold text-[#f7e7b7]">Donate via UPI</h2>
+                <h2 className="text-2xl font-bold text-[#f7e7b7]">Donate via QR</h2>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-[#d5c08a] mb-2">
-                  Full Name *
-                </label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your full name"
-                  required
-                  suppressHydrationWarning
-                  className="w-full rounded-xl bg-black/30 border-2 border-[#c9a35e]/30 px-4 py-3 text-[#f5f5f1] placeholder:text-[#f5f5f1]/40 outline-none focus:ring-2 focus:ring-[#f8d46a] focus:border-[#f8d46a] transition-all duration-300"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-[#d5c08a] mb-2">
-                  Phone Number *
-                </label>
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 98765 43210"
-                  required
-                  suppressHydrationWarning
-                  className="w-full rounded-xl bg-black/30 border-2 border-[#c9a35e]/30 px-4 py-3 text-[#f5f5f1] placeholder:text-[#f5f5f1]/40 outline-none focus:ring-2 focus:ring-[#f8d46a] focus:border-[#f8d46a] transition-all duration-300"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-[#d5c08a] mb-2">
-                  Amount (INR)
-                </label>
-                <input
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Enter amount"
-                  type="number"
-                  min="1"
-                  suppressHydrationWarning
-                  className="w-full rounded-xl bg-black/30 border-2 border-[#c9a35e]/30 px-4 py-3 text-[#f5f5f1] placeholder:text-[#f5f5f1]/40 outline-none focus:ring-2 focus:ring-[#f8d46a] focus:border-[#f8d46a] transition-all duration-300"
-                />
-
-                {/* Quick amount buttons */}
-                <div className="grid grid-cols-4 gap-2 mt-3">
-                  {quickAmounts.map((amt) => (
-                    <motion.button
-                      key={amt}
-                      type="button"
-                      onClick={() => setAmount(String(amt))}
-                      className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                        amount === String(amt)
-                          ? "bg-gradient-to-r from-[#c9a35e] to-[#f8d46a] text-black"
-                          : "bg-black/30 border border-[#c9a35e]/30 text-[#f5f5f1] hover:border-[#f8d46a]/60"
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      ₹{amt}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <motion.button
-                  type="submit"
-                  disabled={submitted}
-                  className="flex-1 px-6 py-3 rounded-full bg-gradient-to-r from-[#c9a35e] to-[#f8d46a] text-black font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  whileHover={{ scale: submitted ? 1 : 1.03, y: submitted ? 0 : -2 }}
-                  whileTap={{ scale: submitted ? 1 : 0.98 }}
-                  suppressHydrationWarning
-                >
-                  <FaCreditCard className="text-xl" />
-                  <span>{submitted ? "Preparing QR..." : "Donate Now"}</span>
-                </motion.button>
-
+<div>
+  
+</div>
                 <motion.a
                   href="/contact"
                   className="px-6 py-3 rounded-full border-2 border-[#c9a35e] text-[#f7e7b7] font-bold hover:bg-[#c9a35e]/20 transition-all duration-300 text-center flex items-center justify-center gap-2"
@@ -211,7 +138,6 @@ function DonateContent() {
                   <FaPhone />
                   <span>Need Help?</span>
                 </motion.a>
-              </div>
             </form>
           </motion.div>
 
@@ -309,7 +235,7 @@ function DonateContent() {
 
               {/* UPI ID */}
               <motion.div
-                className="p-4 rounded-xl bg-gradient-to-br from-[#c9a35e]/10 to-[#f8d46a]/10 border-2 border-[#f8d46a]/40"
+                className="p-4 rounded-xl bg-linear-to-br from-[#c9a35e]/10 to-[#f8d46a]/10 border-2 border-[#f8d46a]/40"
                 whileHover={{ x: 3 }}
               >
                 <div className="text-xs text-[#f8d46a] mb-1">UPI ID</div>
