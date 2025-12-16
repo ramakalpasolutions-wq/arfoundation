@@ -91,7 +91,7 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 1, ease: "easeOut" }}
     >
-      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/30 z-5 pointer-events-none rounded-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 z-[5] pointer-events-none rounded-3xl" />
       
       <div className="relative w-full" style={{ height }}>
         {safeSlides.map((src, i) => {
@@ -110,7 +110,7 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
                 <img
                   src={src}
                   alt=""
-                  className="w-full h-full object-contain bg-brown"
+                  className="w-full h-full object-contain bg-black"
                   draggable={false}
                 />
               ) : null}
@@ -122,7 +122,7 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
       {/* Navigation Buttons */}
       <div className="absolute inset-0 flex items-center justify-between px-4 sm:px-8 pointer-events-none z-20">
         <motion.button
-          className="pointer-events-auto bg-linear-to-r from-[#c9a35e]/80 to-[#f8d46a]/80 backdrop-blur-md text-white p-4 rounded-full shadow-2xl border border-white/20"
+          className="pointer-events-auto bg-gradient-to-r from-[#c9a35e]/80 to-[#f8d46a]/80 backdrop-blur-md text-white p-4 rounded-full shadow-2xl border border-white/20"
           onClick={prev}
           aria-label="previous"
           whileHover={{ scale: 1.15, rotate: -5 }}
@@ -134,7 +134,7 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
         </motion.button>
 
         <motion.button
-          className="pointer-events-auto bg-linear-to-r from-[#f8d46a]/80 to-[#c9a35e]/80 backdrop-blur-md text-white p-4 rounded-full shadow-2xl border border-white/20"
+          className="pointer-events-auto bg-gradient-to-r from-[#f8d46a]/80 to-[#c9a35e]/80 backdrop-blur-md text-white p-4 rounded-full shadow-2xl border border-white/20"
           onClick={next}
           aria-label="next"
           whileHover={{ scale: 1.15, rotate: 5 }}
@@ -155,7 +155,7 @@ function PhotoCarousel({ slides, interval = 3000, desktopHeight = "65vh", showIn
               onClick={() => goTo(i)}
               className={`rounded-full transition-all backdrop-blur-sm ${
                 index === i 
-                  ? "w-12 h-3 bg-linear-to-r from-[#c9a35e] to-[#f8d46a]" 
+                  ? "w-12 h-3 bg-gradient-to-r from-[#c9a35e] to-[#f8d46a]" 
                   : "w-3 h-3 bg-white/40 hover:bg-white/60"
               }`}
               aria-label={`go-to-${i + 1}`}
@@ -306,9 +306,9 @@ export default function Home() {
       <div className="px-4 sm:px-6 lg:px-8 pt-4">
         {isLoading ? (
           <div className="flex justify-center items-center rounded-3xl shadow-2xl" style={{ height: "65vh" }}>
-<motion.div
+           <motion.div
         className="w-20 h-20 rounded-full border-4 border-[#f8d46a]/30 border-t-[#f8d46a]"
-        animate={{ rotate: 720 }}
+        animate={{ rotate: 360 }}
         transition={{ duration: 1.4, repeat: Infinity, ease: "linear" }}
       />
           </div>

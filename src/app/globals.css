@@ -526,3 +526,52 @@
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
+.loader-premium {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Shimmer Text */
+.loader-text {
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  background: linear-gradient(
+    90deg,
+    #c9a35e 0%,
+    #f8e08e 50%,
+    #c9a35e 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2.8s linear infinite;
+}
+
+/* Wave Bar */
+.loader-wave {
+  width: 120px;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #f8d46a,
+    transparent
+  );
+  animation: wave 1.8s ease-in-out infinite;
+  border-radius: 999px;
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { background-position: 0% }
+  100% { background-position: 200% }
+}
+
+@keyframes wave {
+  0% { transform: translateX(-40px); opacity: 0 }
+  50% { opacity: 1 }
+  100% { transform: translateX(40px); opacity: 0 }
+}

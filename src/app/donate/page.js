@@ -126,9 +126,30 @@ function DonateContent() {
                 <h2 className="text-2xl font-bold text-[#f7e7b7]">Donate via QR</h2>
               </div>
 
-<div>
-  
-</div>
+              {/* QR Code Section */}
+              <motion.div
+                className="flex flex-col items-center justify-center text-center mb-6"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                <div className="relative p-4 rounded-2xl bg-black/40 border border-[#c9a35e]/30 shadow-xl">
+                  {/* Glow */}
+                  <div className="absolute inset-0 rounded-2xl bg-[#f8d46a]/10 blur-2xl" />
+
+                  {/* QR Image */}
+                  <img
+                    src="/turst-logo.webp"   // 🔁 CHANGE TO YOUR ACTUAL PATH
+                    alt="Donate via UPI QR"
+                    className="relative z-10 w-90 h-90 object-contain rounded-xl bg-white p-2"
+                  />
+                </div>
+
+                <p className="mt-4 text-sm text-[#d5c08a] max-w-xs">
+                  Scan this QR code using any UPI app to donate securely
+                </p>
+              </motion.div>
+
                 <motion.a
                   href="/contact"
                   className="px-6 py-3 rounded-full border-2 border-[#c9a35e] text-[#f7e7b7] font-bold hover:bg-[#c9a35e]/20 transition-all duration-300 text-center flex items-center justify-center gap-2"
@@ -235,7 +256,7 @@ function DonateContent() {
 
               {/* UPI ID */}
               <motion.div
-                className="p-4 rounded-xl bg-linear-to-br from-[#c9a35e]/10 to-[#f8d46a]/10 border-2 border-[#f8d46a]/40"
+                className="p-4 rounded-xl bg-gradient-to-br from-[#c9a35e]/10 to-[#f8d46a]/10 border-2 border-[#f8d46a]/40"
                 whileHover={{ x: 3 }}
               >
                 <div className="text-xs text-[#f8d46a] mb-1">UPI ID</div>
