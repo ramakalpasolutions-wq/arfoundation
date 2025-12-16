@@ -69,13 +69,13 @@ export default function Header() {
       </div>
 
       {/* MOBILE */}
-      <div className="lg:hidden fixed top-3 left-1/2 -translate-x-1/2 w-[98%] z-50">
-        <div className="bg-gradient-to-r from-[#1a1a1a] via-[#3d2b1f] to-[#c9a35e] backdrop-blur-xl rounded-xl px-3 py-2 shadow flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <div className="lg:hidden fixed top-1 left-1/2 -translate-x-1/2 w-[98%] z-10">
+        <div className="bg-gradient-to-r from-[#1a1a1a] via-[#3d2b1f] to-[#c9a35e] backdrop-blur-xl  px-3 py-4 shadow flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <img
               src="/turst-logo.webp"
               alt="Logo"
-              className="w-10 h-10 rounded-md object-cover"
+              className="w-20 h-10 rounded-md object-cover"
             />
 
             <Link href="/" className="text-base sm:text-lg font-serif font-bold text-[#f7e7b7]">

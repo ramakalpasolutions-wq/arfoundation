@@ -575,3 +575,13 @@
   50% { opacity: 1 }
   100% { transform: translateX(40px); opacity: 0 }
 }
+@media (max-width: 768px) {
+  .animated-text {
+    animation: none !important;
+  }
+
+  /* .text-glow {
+    filter: none !important;
+    text-shadow: none !important;
+  } */
+}

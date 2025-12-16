@@ -4,7 +4,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import UseAnimations from "react-useanimations";
-import activity from "react-useanimations/lib/activity";
 import heart from "react-useanimations/lib/heart";
 import infinity from "react-useanimations/lib/infinity";
 import plusToX from "react-useanimations/lib/plusToX";
@@ -14,13 +13,6 @@ import { FaImages, FaArrowRight, FaHandHoldingHeart, FaUsers, FaEye, FaBullseye,
 export default function About() {
   const [visionOpen, setVisionOpen] = useState(true);
   const [missionOpen, setMissionOpen] = useState(false);
-
-  // const stats = [
-  //   { icon: "👥", number: "10,000+", label: "Lives Touched", color: "from-blue-500 to-cyan-500" },
-  //   { icon: "🎯", number: "500+", label: "Projects Completed", color: "from-green-500 to-emerald-500" },
-  //   { icon: "🏘️", number: "50+", label: "Communities Served", color: "from-orange-500 to-red-500" },
-  //   { icon: "🤝", number: "100+", label: "Active Volunteers", color: "from-purple-500 to-pink-500" },
-  // ];
 
 const coreValues = [
     {
@@ -75,14 +67,9 @@ const coreValues = [
 
   return (
     <div className="min-h-screen py-8 sm:py-12">
-      <section className="max-w-7xl mx-auto px-4 sm:px-6">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
         {/* HEADING */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
+       
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold mb-6 animated-text text-glow">
             About AR Foundation
           </h1>
@@ -90,9 +77,7 @@ const coreValues = [
           <p className="text-lg md:text-xl text-[#f5f5f1] max-w-3xl mx-auto leading-relaxed mb-4">
             Empowering communities through compassion, education, and sustainable development
           </p>
-        </motion.div>
 
-        {/* INTRODUCTION */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -114,9 +99,7 @@ const coreValues = [
           </div>
         </motion.div>
 
-        {/* VISION & MISSION SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-          {/* VISION CARD */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -484,7 +467,7 @@ const coreValues = [
         </motion.div>
 
         {/* Background Decoration */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
           <motion.div
             className="absolute top-20 left-10 w-72 h-72 bg-[#f8d46a]/5 rounded-full blur-3xl"
             animate={{
