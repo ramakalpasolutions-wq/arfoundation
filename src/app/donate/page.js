@@ -1,17 +1,20 @@
 // src/app/donate/page.js
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import UseAnimations from "react-useanimations";
 import heart from "react-useanimations/lib/heart";
 import copy from "react-useanimations/lib/copy";
-import { FaUniversity, FaPhone, FaHandHoldingHeart, FaCreditCard } from "react-icons/fa";
+import { FaUniversity, FaPhone, FaHandHoldingHeart } from "react-icons/fa";
 
-// Separate component that uses useSearchParams
+/* ---------------------------------------
+   Inner component (client logic)
+---------------------------------------- */
 function DonateContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const paramName = searchParams?.get("name") ?? "";
   const paramPhone = searchParams?.get("phone") ?? "";
@@ -19,13 +22,12 @@ function DonateContent() {
   // form state
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [amount, setAmount] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  // bank copy state
+  // copy state
   const [copiedField, setCopiedField] = useState("");
 
-  // bank details (replace with real values)
+  // bank details
   const BANK = {
     accountName: "AR Foundation",
     accountNumber: "1234567890",
@@ -35,7 +37,7 @@ function DonateContent() {
     upiId: "arfoundation@sbi",
   };
 
-  // prefill once on mount
+  // Prefill from query params
   useEffect(() => {
     if (paramName) setName(paramName);
     if (paramPhone) setPhone(paramPhone);
@@ -43,11 +45,12 @@ function DonateContent() {
   }, []);
 
   function validatePhone(p) {
-    return typeof p === "string" && p.replace(/[^0-9+]/g, "").length >= 7;
+    return typeof p === "string" && p.replace(/[^0-9]/g, "").length >= 7;
   }
 
   function handleSubmit(e) {
     e.preventDefault();
+
     if (!name.trim()) {
       alert("Please enter your full name.");
       return;
@@ -59,33 +62,21 @@ function DonateContent() {
 
     setSubmitted(true);
 
-    // Build query params
-    const params = new URLSearchParams();
-    params.set("name", name.trim());
-    params.set("phone", phone.trim());
-    if (amount && String(amount).trim()) params.set("amount", String(amount).trim());
-
-    // Redirect to QR page
-    router.push(`/donate/qr?${params.toString()}`);
-  }
-
-  function copyToClipboard(text, fieldName) {
-    navigator.clipboard?.writeText(text).then(
-      () => {
-        setCopiedField(fieldName);
-        setTimeout(() => setCopiedField(""), 2000);
-      },
-      () => {
-        alert("Could not copy. Please copy manually.");
-      }
+    alert(
+      `Thank you ${name}! 🙏\n\nPlease scan the QR code on this page or use the bank details to complete your donation.`
     );
   }
 
-  const quickAmounts = [500, 1000, 2000, 5000];
+  function copyToClipboard(text, field) {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(""), 2000);
+    });
+  }
 
   return (
-    <div className="min-h-screen py-8 sm:py-12">
-      <section className="max-w-6xl mx-auto px-4 sm:px-6">
+    <div className="min-h-screen py-10">
+      <section className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -93,205 +84,116 @@ function DonateContent() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <motion.div
-            className="inline-block mb-4"
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            <UseAnimations animation={heart} size={70} strokeColor="#f8d46a" />
-          </motion.div>
-
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold mb-4 animated-text text-glow">
+          <UseAnimations animation={heart} size={70} strokeColor="#f8d46a" />
+          <h1 className="text-4xl md:text-6xl font-bold text-glow mt-4">
             Support Our Mission
           </h1>
-
-          <p className="text-lg text-[#f5f5f1] max-w-2xl mx-auto leading-relaxed">
-            Thank you for supporting AR Foundation. Your generosity helps us create lasting change in communities across India.
+          <p className="text-[#f5f5f1] max-w-2xl mx-auto mt-4">
+            Your generosity helps AR Foundation create lasting change across
+            communities in India.
           </p>
         </motion.div>
 
-        {/* Grid: form + bank card */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* LEFT: Donate form */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
+        {/* Content grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* LEFT: Donate + QR */}
+          <form
+            onSubmit={handleSubmit}
+            className="glass-card p-6 md:p-8 space-y-6"
           >
-            <form onSubmit={handleSubmit} className="glass-card p-6 md:p-8 space-y-5">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-[#c9a35e]/20 to-[#f8d46a]/20">
-                  <FaHandHoldingHeart className="text-3xl text-[#f8d46a]" />
-                </div>
-                <h2 className="text-2xl font-bold text-[#f7e7b7]">Donate via QR</h2>
+            <div className="flex items-center gap-3">
+              <FaHandHoldingHeart className="text-3xl text-[#f8d46a]" />
+              <h2 className="text-2xl font-bold text-[#f7e7b7]">
+                Donate via QR
+              </h2>
+            </div>
+
+            {/* QR */}
+            <div className="flex flex-col items-center">
+              <div className="relative p-4 rounded-2xl bg-black/40 border border-[#c9a35e]/30">
+                <img
+                  src="/turst-logo.webp" // replace with actual QR image
+                  alt="Donate QR"
+                  className="w-64 h-64 bg-white p-2 rounded-xl"
+                />
               </div>
+              <p className="mt-3 text-sm text-[#d5c08a] text-center">
+                Scan using any UPI app to donate securely
+              </p>
+            </div>
 
-              {/* QR Code Section */}
-              <motion.div
-                className="flex flex-col items-center justify-center text-center mb-6"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+          
+
+            <a
+              href="/contact"
+              className="flex items-center justify-center gap-2 text-[#f8d46a] hover:underline"
+            >
+              <FaPhone /> Need Help?
+            </a>
+          </form>
+
+          {/* RIGHT: Bank Details */}
+          <aside className="glass-card p-6 md:p-8 space-y-4">
+            <div className="flex items-center gap-3 mb-4">
+              <FaUniversity className="text-3xl text-[#f8d46a]" />
+              <h2 className="text-2xl font-bold text-[#f7e7b7]">
+                Bank Details
+              </h2>
+            </div>
+
+            {[
+              ["Account Name", BANK.accountName, "accountName"],
+              ["Account Number", BANK.accountNumber, "accountNumber"],
+              ["IFSC Code", BANK.ifsc, "ifsc"],
+              ["UPI ID", BANK.upiId, "upiId"],
+            ].map(([label, value, key]) => (
+              <div
+                key={key}
+                className="p-4 rounded-xl bg-black/30 border border-[#c9a35e]/20 flex justify-between items-center"
               >
-                <div className="relative p-4 rounded-2xl bg-black/40 border border-[#c9a35e]/30 shadow-xl">
-                  {/* Glow */}
-                  <div className="absolute inset-0 rounded-2xl bg-[#f8d46a]/10 blur-2xl" />
-
-                  {/* QR Image */}
-                  <img
-                    src="/turst-logo.webp"   // 🔁 CHANGE TO YOUR ACTUAL PATH
-                    alt="Donate via UPI QR"
-                    className="relative z-10 w-90 h-90 object-contain rounded-xl bg-white p-2"
-                  />
+                <div>
+                  <div className="text-xs text-[#d5c08a]">{label}</div>
+                  <div className="font-mono text-[#f5f5f1]">{value}</div>
                 </div>
-
-                <p className="mt-4 text-sm text-[#d5c08a] max-w-xs">
-                  Scan this QR code using any UPI app to donate securely
-                </p>
-              </motion.div>
-
-                <motion.a
-                  href="/contact"
-                  className="px-6 py-3 rounded-full border-2 border-[#c9a35e] text-[#f7e7b7] font-bold hover:bg-[#c9a35e]/20 transition-all duration-300 text-center flex items-center justify-center gap-2"
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
+                  onClick={() => copyToClipboard(value, key)}
+                  className="p-2"
                 >
-                  <FaPhone />
-                  <span>Need Help?</span>
-                </motion.a>
-            </form>
-          </motion.div>
-
-          {/* RIGHT: Bank details card */}
-          <motion.aside
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="glass-card p-6 md:p-8"
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-[#c9a35e]/20 to-[#f8d46a]/20">
-                <FaUniversity className="text-3xl text-[#f8d46a]" />
+                  {copiedField === key ? (
+                    <span className="text-green-400">✓</span>
+                  ) : (
+                    <UseAnimations
+                      animation={copy}
+                      size={20}
+                      strokeColor="#f8d46a"
+                    />
+                  )}
+                </button>
               </div>
-              <h2 className="text-2xl font-bold text-[#f7e7b7]">Bank Details</h2>
+            ))}
+
+            <div className="text-sm text-[#d5c08a]">
+              {BANK.bankName} — {BANK.branch}
             </div>
-
-            <div className="space-y-4">
-              {/* Account Name */}
-              <motion.div
-                className="p-4 rounded-xl bg-black/30 border border-[#c9a35e]/20 hover:border-[#f8d46a]/40 transition-all duration-300"
-                whileHover={{ x: 3 }}
-              >
-                <div className="text-xs text-[#d5c08a] mb-1">Account Name</div>
-                <div className="flex items-center justify-between">
-                  <div className="font-semibold text-[#f5f5f1]">{BANK.accountName}</div>
-                  <motion.button
-                    onClick={() => copyToClipboard(BANK.accountName, "accountName")}
-                    className="p-2 hover:bg-[#c9a35e]/20 rounded-lg transition-colors"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    {copiedField === "accountName" ? (
-                      <span className="text-green-400 text-sm">✓</span>
-                    ) : (
-                      <UseAnimations animation={copy} size={20} strokeColor="#c9a35e" />
-                    )}
-                  </motion.button>
-                </div>
-              </motion.div>
-
-              {/* Account Number */}
-              <motion.div
-                className="p-4 rounded-xl bg-black/30 border border-[#c9a35e]/20 hover:border-[#f8d46a]/40 transition-all duration-300"
-                whileHover={{ x: 3 }}
-              >
-                <div className="text-xs text-[#d5c08a] mb-1">Account Number</div>
-                <div className="flex items-center justify-between">
-                  <div className="font-mono font-semibold text-[#f5f5f1]">{BANK.accountNumber}</div>
-                  <motion.button
-                    onClick={() => copyToClipboard(BANK.accountNumber, "accountNumber")}
-                    className="p-2 hover:bg-[#c9a35e]/20 rounded-lg transition-colors"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    {copiedField === "accountNumber" ? (
-                      <span className="text-green-400 text-sm">✓</span>
-                    ) : (
-                      <UseAnimations animation={copy} size={20} strokeColor="#c9a35e" />
-                    )}
-                  </motion.button>
-                </div>
-              </motion.div>
-
-              {/* IFSC Code */}
-              <motion.div
-                className="p-4 rounded-xl bg-black/30 border border-[#c9a35e]/20 hover:border-[#f8d46a]/40 transition-all duration-300"
-                whileHover={{ x: 3 }}
-              >
-                <div className="text-xs text-[#d5c08a] mb-1">IFSC Code</div>
-                <div className="flex items-center justify-between">
-                  <div className="font-mono font-semibold text-[#f5f5f1]">{BANK.ifsc}</div>
-                  <motion.button
-                    onClick={() => copyToClipboard(BANK.ifsc, "ifsc")}
-                    className="p-2 hover:bg-[#c9a35e]/20 rounded-lg transition-colors"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    {copiedField === "ifsc" ? (
-                      <span className="text-green-400 text-sm">✓</span>
-                    ) : (
-                      <UseAnimations animation={copy} size={20} strokeColor="#c9a35e" />
-                    )}
-                  </motion.button>
-                </div>
-              </motion.div>
-
-              {/* Bank / Branch */}
-              <div className="p-4 rounded-xl bg-black/30 border border-[#c9a35e]/20">
-                <div className="text-xs text-[#d5c08a] mb-1">Bank / Branch</div>
-                <div className="font-semibold text-[#f5f5f1]">
-                  {BANK.bankName} — {BANK.branch}
-                </div>
-              </div>
-
-              {/* UPI ID */}
-              <motion.div
-                className="p-4 rounded-xl bg-gradient-to-br from-[#c9a35e]/10 to-[#f8d46a]/10 border-2 border-[#f8d46a]/40"
-                whileHover={{ x: 3 }}
-              >
-                <div className="text-xs text-[#f8d46a] mb-1">UPI ID</div>
-                <div className="flex items-center justify-between">
-                  <div className="font-mono font-semibold text-[#f5f5f1]">{BANK.upiId}</div>
-                  <motion.button
-                    onClick={() => copyToClipboard(BANK.upiId, "upiId")}
-                    className="p-2 hover:bg-[#f8d46a]/20 rounded-lg transition-colors"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    {copiedField === "upiId" ? (
-                      <span className="text-green-400 text-sm">✓</span>
-                    ) : (
-                      <UseAnimations animation={copy} size={20} strokeColor="#f8d46a" />
-                    )}
-                  </motion.button>
-                </div>
-              </motion.div>
-            </div>
-          </motion.aside>
+          </aside>
         </div>
       </section>
     </div>
   );
 }
 
-// Main component with Suspense wrapper
-export default function Donate() {
+/* ---------------------------------------
+   REQUIRED default export with Suspense
+---------------------------------------- */
+export default function DonatePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-[#f8d46a] text-xl">Loading...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-[#f8d46a]">
+          Loading donation page...
+        </div>
+      }
+    >
       <DonateContent />
     </Suspense>
   );
