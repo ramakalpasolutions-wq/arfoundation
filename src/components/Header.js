@@ -26,7 +26,7 @@ export default function Header() {
           <img
             src="/turst-logo.webp"
             alt="Logo"
-            className="w-20 h-20 ml-3 rounded-md object-cover"
+            className="w-40 h-20 ml-9 rounded-md object-cover"
           />
 
         <motion.div
