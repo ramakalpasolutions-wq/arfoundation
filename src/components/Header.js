@@ -22,11 +22,11 @@ export default function Header() {
       {/* DESKTOP */}
       <div className="hidden  lg:flex items-center justify-between p-6 sticky top-0 z-40">
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1">
           <img
-            src="/turst-logo.webp"
+            src="/turst-logo (2).webp"
             alt="Logo"
-            className="w-40 h-20 ml-9 rounded-md object-cover"
+            className="w-20 h-20 ml-9  rounded-md object-cover"
           />
 
         <motion.div
@@ -36,7 +36,7 @@ export default function Header() {
           >
           <Link
             href="/"
-            className="inline-block text-2xl font-serif font-bold bg-gradient-to-r from-[#c9a35e] via-[#e8d39f] to-[#f7e7b7] bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(0,0,0,0.3)]"
+            className="inline-block text-2xl font-serif font-bold bg-gradient-to-r from-[#c9a35e] via-[#e8d39f] to-[#f7e7b7] bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(0,0,0,0.3)]" style={{marginTop:"20px"}}
           >
             AR Foundation
           </Link>
