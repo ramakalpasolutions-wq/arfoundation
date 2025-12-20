@@ -57,14 +57,14 @@ export default function RootLayout({ children }) {
           <div className="loader-premium horizontal">
           {/* LOGO */}
           <img
-            src="/turst-logo.webp"   // ← replace with your logo path
+            src="/turst-logo (2).webp"   // ← replace with your logo path
             alt="AR Foundation Logo"
             className="loader-logo w-60"
           />
 
           {/* LOADING TEXT */}
           <span className="loader-loading">
-            Loading<span className="dots"></span>
+            <span className="dots"></span>
           </span>
 
           {/* BRAND NAME */}
