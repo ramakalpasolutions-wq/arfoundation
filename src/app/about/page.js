@@ -1,4 +1,3 @@
-// src/app/about/page.js
 "use client";
 
 import { useState } from "react";
@@ -14,7 +13,7 @@ export default function About() {
   const [visionOpen, setVisionOpen] = useState(true);
   const [missionOpen, setMissionOpen] = useState(false);
 
-const coreValues = [
+  const coreValues = [
     {
       icon: FaHandHoldingHeart,
       title: "Compassion",
@@ -40,7 +39,6 @@ const coreValues = [
       color: "from-green-500 to-emerald-500",
     },
   ];
-
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -69,20 +67,19 @@ const coreValues = [
     <div className="min-h-screen py-8 sm:py-12">
       <section className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
         {/* HEADING */}
-       
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold mb-6 animated-text text-glow">
-            About AR Foundation
-          </h1>
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold mb-6 animated-text text-glow">
+          About AR Foundation
+        </h1>
 
-          <p className="text-lg md:text-xl text-[#f5f5f1] max-w-3xl mx-auto leading-relaxed mb-4">
-            Empowering communities through compassion, education, and sustainable development
-          </p>
+        <p className="text-lg md:text-xl text-[#f5f5f1] max-w-3xl mx-auto leading-relaxed mb-4">
+          Empowering communities through compassion, education, and sustainable development
+        </p>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="glass-card p-6 md:p-8 mb-12 border-2 border-[#c9a35e]/30"
+          className="glass-card no-transition p-6 md:p-8 mb-12 border-2 border-[#c9a35e]/30"
         >
           <div className="prose prose-lg max-w-none">
             <p className="text-[#f5f5f1] text-base md:text-lg leading-relaxed mb-4">
@@ -104,12 +101,13 @@ const coreValues = [
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
+            className="no-transition"
           >
             {/* Mobile Accordion */}
             <div className="lg:hidden">
               <motion.button
                 onClick={() => setVisionOpen((s) => !s)}
-                className="w-full glass-card p-5 flex items-center justify-between group"
+                className="w-full glass-card no-transition p-5 flex items-center justify-between group"
                 whileTap={{ scale: 0.99 }}
               >
                 <div className="flex items-center gap-3">
@@ -129,16 +127,17 @@ const coreValues = [
                 />
               </motion.button>
 
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {visionOpen && (
                   <motion.div
+                    key="vision"
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="overflow-hidden"
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden no-transition"
                   >
-                    <div className="mt-3 glass-card p-5 space-y-3 border-l-4 border-[#f8d46a]">
+                    <div className="mt-3 glass-card no-transition p-5 space-y-3 border-l-4 border-[#f8d46a]">
                       <p className="text-[#f5f5f1] text-sm leading-relaxed">
                         To build a <strong className="text-[#f8d46a]">compassionate and empowered society</strong> where every individual—irrespective of economic or social background—has access to quality education, comprehensive healthcare, personal security, and human dignity.
                       </p>
@@ -154,13 +153,13 @@ const coreValues = [
             {/* Desktop Card */}
             <div className="hidden lg:block h-full">
               <motion.div
-                className="glass-card p-8 h-full group hover-lift"
+                className="glass-card no-transition p-8 h-full group hover-lift"
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.2 }}
               >
                 <div className="flex items-center gap-4 mb-6">
                   <motion.div
-                    className="p-4 rounded-2xl bg-gradient-to-br from-[#c9a35e]/20 to-[#f8d46a]/20"
+                    className="p-4 rounded-2xl bg-gradient-to-br from-[#c9a35e]/20 to-[#f8d46a]/20 no-transition"
                     whileHover={{ rotate: 180, scale: 1.05 }}
                     transition={{ duration: 0.4 }}
                   >
@@ -187,12 +186,13 @@ const coreValues = [
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
+            className="no-transition"
           >
             {/* Mobile Accordion */}
             <div className="lg:hidden">
               <motion.button
                 onClick={() => setMissionOpen((s) => !s)}
-                className="w-full glass-card p-5 flex items-center justify-between group"
+                className="w-full glass-card no-transition p-5 flex items-center justify-between group"
                 whileTap={{ scale: 0.99 }}
               >
                 <div className="flex items-center gap-3">
@@ -212,16 +212,17 @@ const coreValues = [
                 />
               </motion.button>
 
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {missionOpen && (
                   <motion.div
+                    key="mission"
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="overflow-hidden"
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden no-transition"
                   >
-                    <div className="mt-3 glass-card p-5 space-y-2 border-l-4 border-[#f8d46a]">
+                    <div className="mt-3 glass-card no-transition p-5 space-y-2 border-l-4 border-[#f8d46a]">
                       {[
                         "Deliver accessible healthcare through medical camps, free checkups, and health awareness programs",
                         "Empower youth through education scholarships, skill development, and mentorship programs",
@@ -232,7 +233,7 @@ const coreValues = [
                       ].map((item, idx) => (
                         <motion.div
                           key={idx}
-                          className="flex items-start gap-3 text-[#f5f5f1] text-sm"
+                          className="flex items-start gap-3 text-[#f5f5f1] text-sm no-transition"
                           initial={{ opacity: 0, x: -5 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: idx * 0.05 }}
@@ -250,13 +251,13 @@ const coreValues = [
             {/* Desktop Card */}
             <div className="hidden lg:block h-full">
               <motion.div
-                className="glass-card p-8 h-full group hover-lift"
+                className="glass-card no-transition p-8 h-full group hover-lift"
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.2 }}
               >
                 <div className="flex items-center gap-4 mb-6">
                   <motion.div
-                    className="p-4 rounded-2xl bg-gradient-to-br from-[#c9a35e]/20 to-[#f8d46a]/20"
+                    className="p-4 rounded-2xl bg-gradient-to-br from-[#c9a35e]/20 to-[#f8d46a]/20 no-transition"
                     whileHover={{ rotate: 180, scale: 1.05 }}
                     transition={{ duration: 0.4 }}
                   >
@@ -277,7 +278,7 @@ const coreValues = [
                   ].map((item, idx) => (
                     <motion.div
                       key={idx}
-                      className="flex items-start gap-3 text-[#f5f5f1]"
+                      className="flex items-start gap-3 text-[#f5f5f1] no-transition"
                       whileHover={{ x: 3 }}
                       transition={{ duration: 0.2 }}
                     >
@@ -296,7 +297,7 @@ const coreValues = [
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
-          className="mb-12"
+          className="mb-12 no-transition"
         >
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold text-[#f7e7b7] mb-4">
@@ -319,7 +320,7 @@ const coreValues = [
                 <motion.div
                   key={idx}
                   variants={itemVariants}
-                  className="glass-card p-6 group hover-lift text-center"
+                  className="glass-card no-transition p-6 group hover-lift text-center"
                   whileHover={{ y: -5 }}
                   transition={{ duration: 0.2 }}
                 >
@@ -327,7 +328,7 @@ const coreValues = [
                     className={`absolute inset-0 bg-gradient-to-br ${value.color} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}
                   />
                   <motion.div
-                    className="inline-block p-4 rounded-2xl bg-gradient-to-br from-[#c9a35e]/20 to-[#f8d46a]/20 mb-4"
+                    className="inline-block p-4 rounded-2xl bg-gradient-to-br from-[#c9a35e]/20 to-[#f8d46a]/20 mb-4 no-transition"
                     whileHover={{ rotate: 180, scale: 1.05 }}
                     transition={{ duration: 0.4 }}
                   >
@@ -345,88 +346,15 @@ const coreValues = [
           </motion.div>
         </motion.div>
 
-        {/* GALLERY SECTION (Replacing Milestones) */}
-        {/* <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          className="mb-12"
-        >
-          <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#f7e7b7] mb-4">
-              Our Journey in Pictures
-            </h2>
-            <p className="text-[#f5f5f1] max-w-2xl mx-auto">
-              Capturing moments of change and impact
-            </p>
-          </div> */}
-
-          {/* <div className="glass-card p-6 md:p-8"> */}
-            {/* <div className="space-y-6"> */}
-              {/* Photo Grid */}
-              {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                {[
-                  { src: "/images/gallery-1.jpg", alt: "Community Event 1" },
-                  { src: "/images/gallery-2.jpg", alt: "Education Program" },
-                  { src: "/images/gallery-3.jpg", alt: "Healthcare Initiative" },
-                  { src: "/images/gallery-4.jpg", alt: "Cultural Celebration" },
-                ].map((photo, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.7 + idx * 0.1, type: "spring" }}
-                    className="relative overflow-hidden rounded-xl group cursor-pointer border-2 border-[#c9a35e]/20 hover:border-[#f8d46a]/60 transition-all duration-300"
-                    whileHover={{ y: -8 }}
-                  >
-                    <div className="aspect-square bg-gradient-to-br from-[#c9a35e]/20 to-[#f8d46a]/20">
-                      <img
-                        src={photo.src}
-                        alt={photo.alt}
-                        className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
-                      />
-                    </div> */}
-                    {/* Overlay */}
-                    {/* <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
-                      <span className="text-white text-xs md:text-sm font-semibold text-center">
-                        {photo.alt}
-                      </span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div> */}
-
-              {/* View Gallery Button */}
-              {/* <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.2 }}
-                className="flex justify-center pt-4"
-              >
-                <motion.a
-                  href="/gallery"
-                  className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-[#c9a35e] to-[#f8d46a] text-black font-bold text-lg shadow-2xl hover:shadow-[#f8d46a]/50 transition-all duration-300"
-                  whileHover={{ scale: 1.05, y: -3 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <FaImages className="text-xl" />
-                  <span>Explore Full Gallery</span>
-                  <FaArrowRight className="text-lg" />
-                </motion.a>
-              </motion.div>
-            </div>
-          </div>
-        </motion.div> */}
-
         {/* CTA SECTION */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.5 }}
-          className="glass-card p-8 md:p-12 text-center border-2 border-[#c9a35e]/30"
+          className="glass-card no-transition p-8 md:p-12 text-center border-2 border-[#c9a35e]/30"
         >
           <motion.div
-            className="inline-block mb-4"
+            className="inline-block mb-4 no-transition"
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 3, repeat: Infinity }}
           >
@@ -444,7 +372,7 @@ const coreValues = [
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <motion.a
               href="/donate"
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-[#f8d46a] to-[#c9a35e] text-black font-bold text-lg shadow-2xl"
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-[#f8d46a] to-[#c9a35e] text-black font-bold text-lg shadow-2xl no-transition"
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
@@ -455,7 +383,7 @@ const coreValues = [
 
             <motion.a
               href="/contact"
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full border-2 border-[#c9a35e] text-[#f7e7b7] font-bold text-lg hover:bg-[#c9a35e]/20 backdrop-blur-sm transition-all duration-300"
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full border-2 border-[#c9a35e] text-[#f7e7b7] font-bold text-lg hover:bg-[#c9a35e]/20 backdrop-blur-sm transition-all duration-300 no-transition"
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
@@ -469,7 +397,7 @@ const coreValues = [
         {/* Background Decoration */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
           <motion.div
-            className="absolute top-20 left-10 w-72 h-72 bg-[#f8d46a]/5 rounded-full blur-3xl"
+            className="absolute top-20 left-10 w-72 h-72 bg-[#f8d46a]/5 rounded-full blur-3xl no-transition"
             animate={{
               scale: [1, 1.15, 1],
               opacity: [0.3, 0.5, 0.3],
@@ -479,7 +407,7 @@ const coreValues = [
             transition={{ duration: 15, repeat: Infinity }}
           />
           <motion.div
-            className="absolute bottom-20 right-10 w-96 h-96 bg-[#c9a35e]/5 rounded-full blur-3xl"
+            className="absolute bottom-20 right-10 w-96 h-96 bg-[#c9a35e]/5 rounded-full blur-3xl no-transition"
             animate={{
               scale: [1.15, 1, 1.15],
               opacity: [0.3, 0.5, 0.3],
