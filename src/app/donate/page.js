@@ -30,11 +30,11 @@ function DonateContent() {
   // bank details
   const BANK = {
     accountName: "AR Foundation",
-    accountNumber: "1234567890",
-    ifsc: "SBIN0000123",
-    bankName: "State Bank of India",
+    accountNumber: "50200073935044",
+    ifsc: "HDFC0004799",
+    bankName: "HDFC BANK",
     branch: "Guntur",
-    upiId: "arfoundation@sbi",
+    // upiId: "arfoundation@sbi",
   };
 
   // Prefill from query params

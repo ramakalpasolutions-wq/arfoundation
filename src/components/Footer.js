@@ -144,7 +144,11 @@ export default function Footer() {
           <p className="text-xs text-[#d5c08a]">
             © {year} AR Foundation. All rights reserved.
           </p>
+           <a className="text-xs text-[#d5c08a]" href="https://www.ramakalpasolutions.in/">
+            Designed by Ramakalpa Solutions
+          </a>
         </div>
+        
       </div>
 
       {/* MOBILE: a compact alternate layout (keeps markup small and readable)

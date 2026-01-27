@@ -24,9 +24,9 @@ export default function Header() {
         
         <div className="flex items-center gap-1">
           <img
-            src="/turst-logo (2).webp"
+            src="/turst-logo (2).png"
             alt="Logo"
-            className="w-20 h-20 ml-9  rounded-md object-cover"
+            className="w-25 h-25 ml-9  rounded-md object-cover"
           />
 
         <motion.div

@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
 
     const timeout = setTimeout(() => {
       setLoading(false);
-    }, 700); // duration of loader
+    }, 2000); // duration of loader
 
     return () => clearTimeout(timeout);
   }, [pathname]);
@@ -57,7 +57,7 @@ export default function RootLayout({ children }) {
           <div className="loader-premium horizontal">
           {/* LOGO */}
           <img
-            src="/turst-logo (2).webp"   // ← replace with your logo path
+            src="/turst-logo.png"   // ← replace with your logo path
             alt="AR Foundation Logo"
             className="loader-logo w-60"
           />
