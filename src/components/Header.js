@@ -6,8 +6,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import UseAnimations from "react-useanimations";
+import { Alex_Brush } from "next/font/google";
 
-
+const alexBrush = Alex_Brush({
+  subsets: ["latin"],
+  weight: "400",
+});
 
 export default function Header() {
   const pathname = usePathname();
@@ -29,18 +33,18 @@ export default function Header() {
             className="w-25 h-25 ml-9  rounded-md object-cover"
           />
 
-        <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.1 }}
-          >
-          <Link
-            href="/"
-            className="inline-block text-2xl font-serif font-bold bg-gradient-to-r from-[#c9a35e] via-[#e8d39f] to-[#f7e7b7] bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(0,0,0,0.3)]" style={{marginTop:"20px"}}
-          >
-            AR Foundation
-          </Link>
-          </motion.div>
+      <Link
+  href="/"
+  className="inline-block text-3xl bg-gradient-to-r from-[#c9a35e] via-[#e8d39f] to-[#f7e7b7] bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(0,0,0,0.3)]"
+>
+  <span className={`${alexBrush.className} text-5xl`} style={{fontWeight:"bold"}}>
+  AR
+</span>{" "} 
+  <span className="font-serif font-semibold tracking-wide">
+    Foundation
+  </span>
+</Link>
+
         </div>
 
         <nav className="flex items-center gap-6">
