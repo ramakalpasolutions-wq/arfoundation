@@ -112,7 +112,7 @@ function DonateContent() {
             <div className="flex flex-col items-center">
               <div className="relative p-4 rounded-2xl bg-black/40 border border-[#c9a35e]/30">
                 <img
-                  src="/turst-logo.webp" // replace with actual QR image
+                  src="/" // replace with actual QR image
                   alt="Donate QR"
                   className="w-64 h-64 bg-white p-2 rounded-xl"
                 />

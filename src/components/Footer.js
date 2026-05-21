@@ -126,15 +126,15 @@ export default function Footer() {
             </div>
 
             <address className="not-italic text-sm leading-relaxed text-[#f1f1e9]">
-            
+            82-5-430,
               <br />
-              
+              Sampath Nagar 5th Line,
               <br />
-            
+              Near Appadala Company,
               <br />
-              
+              Guntur,
               <br />
-              Guntur District – 522401
+              Guntur District – 522004
             </address>
           </div>
         </div>

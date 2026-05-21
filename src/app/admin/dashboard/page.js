@@ -22,7 +22,7 @@ import {
 } from "react-icons/fa";
 
 const API = "/api/event-photos";
-const EXAMPLE_LOCAL_PATH = "/mnt/data/3b9d88d7-3ddd-44b0-b3e7-dad4e4e185b4.png";
+const EXAMPLE_LOCAL_PATH = "";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -60,6 +60,12 @@ export default function AdminPage() {
     return img.original || img.optimized || img.thumb || "";
   }
 
+  function getPublicId(img) {
+    if (!img) return null;
+    if (typeof img === "object" && img.public_id) return img.public_id;
+    return null;
+  }
+
   function safeSrc(img) {
     const s = getImgUrl(img);
     return s && s.trim() !== "" ? s : null;
@@ -70,9 +76,21 @@ export default function AdminPage() {
   }
 
   const allowedExts = [];
+
   function isValidImageFile(file) {
     if (!file) return false;
     if (file.type && !file.type.startsWith("image/")) return false;
+
+    // Reject files over 50MB raw
+    const MAX_RAW_MB = 50;
+    if (file.size > MAX_RAW_MB * 1024 * 1024) {
+      updateStatus(
+        `"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum raw size is ${MAX_RAW_MB}MB.`,
+        "error"
+      );
+      return false;
+    }
+
     const name = (file.name || "").toLowerCase();
     if (allowedExts.length === 0) return true;
     return allowedExts.some((ext) => name.endsWith(ext));
@@ -119,7 +137,8 @@ export default function AdminPage() {
       }
 
       const galleryFromBody = body.gallery ?? body;
-      const sliderFromBody = body.slider ?? body.home_slider ?? body.homeSlider ?? [];
+      const sliderFromBody =
+        body.slider ?? body.home_slider ?? body.homeSlider ?? [];
 
       const finalGallery =
         body.gallery ??
@@ -138,7 +157,10 @@ export default function AdminPage() {
       setGallery({});
       setHeroGallery([]);
       setSelectedEvent("");
-      updateStatus("Error loading gallery: " + (err.message || String(err)), "error");
+      updateStatus(
+        "Error loading gallery: " + (err.message || String(err)),
+        "error"
+      );
     }
   }
 
@@ -160,24 +182,110 @@ export default function AdminPage() {
   };
 
   // -----------------------
+  // Image Compression Helper
+  // -----------------------
+  async function compressImage(file, maxSizeMB = 9, maxWidthOrHeight = 2048) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let { width, height } = img;
+
+          // Scale down if too large
+          if (width > maxWidthOrHeight || height > maxWidthOrHeight) {
+            if (width > height) {
+              height = Math.round((height * maxWidthOrHeight) / width);
+              width = maxWidthOrHeight;
+            } else {
+              width = Math.round((width * maxWidthOrHeight) / height);
+              height = maxWidthOrHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Reduce quality until under maxSizeMB
+          let quality = 0.85;
+          let dataUrl = canvas.toDataURL("image/jpeg", quality);
+
+          while (
+            dataUrl.length * 0.75 > maxSizeMB * 1024 * 1024 &&
+            quality > 0.1
+          ) {
+            quality -= 0.05;
+            dataUrl = canvas.toDataURL("image/jpeg", quality);
+          }
+
+          // Convert dataURL back to File
+          fetch(dataUrl)
+            .then((res) => res.blob())
+            .then((blob) => {
+              const compressedFile = new File(
+                [blob],
+                file.name.replace(/\.[^.]+$/, ".jpg"),
+                { type: "image/jpeg", lastModified: Date.now() }
+              );
+              console.log(
+                `✅ Compressed: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(
+                  compressedFile.size /
+                  1024 /
+                  1024
+                ).toFixed(2)}MB`
+              );
+              resolve(compressedFile);
+            })
+            .catch(reject);
+        };
+        img.onerror = reject;
+      };
+      reader.onerror = reject;
+    });
+  }
+
+  // -----------------------
   // Cloudinary direct upload helper
   // -----------------------
   async function uploadToCloudinary(file, folder) {
-    const sigRes = await fetch(`/api/upload-signature?folder=${encodeURIComponent(folder)}`);
+    // Compress before uploading if over 9MB
+    const MAX_SIZE_MB = 9;
+    let fileToUpload = file;
+
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      updateStatus(`Compressing ${file.name}...`, "info");
+      try {
+        fileToUpload = await compressImage(file, MAX_SIZE_MB);
+      } catch (compressErr) {
+        console.error("Compression failed:", compressErr);
+        throw new Error(
+          `Compression failed for ${file.name}: ${compressErr.message}`
+        );
+      }
+    }
+
+    const sigRes = await fetch(
+      `/api/upload-signature?folder=${encodeURIComponent(folder)}`
+    );
     if (!sigRes.ok) throw new Error("Failed to get upload signature");
     const { timestamp, signature, apiKey, cloudName } = await sigRes.json();
 
     const fd = new FormData();
-    fd.append("file", file);
+    fd.append("file", fileToUpload);
     fd.append("api_key", apiKey);
     fd.append("timestamp", timestamp);
     fd.append("signature", signature);
     fd.append("folder", folder);
 
-    const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: "POST",
-      body: fd,
-    });
+    const uploadRes = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: "POST", body: fd }
+    );
 
     const json = await uploadRes.json();
     if (!uploadRes.ok) {
@@ -187,7 +295,7 @@ export default function AdminPage() {
   }
 
   // -----------------------
-  // Upload images to an event (direct to Cloudinary)
+  // Upload images to an event
   // -----------------------
   async function handleFilesUpload(e) {
     e?.preventDefault?.();
@@ -195,20 +303,20 @@ export default function AdminPage() {
     const target = String(targetRaw || "").trim();
     if (!target) return alert("Please choose or enter an event name.");
     const toUpload = singleFile ? [singleFile] : files;
-    if (!toUpload || toUpload.length === 0) return alert("Pick one or more images to upload.");
+    if (!toUpload || toUpload.length === 0)
+      return alert("Pick one or more images to upload.");
 
     const valid = toUpload.filter(isValidImageFile);
     const invalidCount = toUpload.length - valid.length;
     if (invalidCount > 0) {
       updateStatus(
-        `Rejected ${invalidCount} file(s). Allowed: ${allowedExts.join(", ") || "images"}`,
+        `Rejected ${invalidCount} file(s). Only images allowed.`,
         "error"
       );
     }
-    if (valid.length === 0)
-      return alert("No valid image files to upload. Allowed types: " + (allowedExts.join(", ") || "images"));
+    if (valid.length === 0) return alert("No valid image files to upload.");
 
-    updateStatus("Uploading to Cloudinary...", "info");
+    updateStatus("Uploading to ...", "info");
     try {
       const uploadedItems = [];
       let i = 1;
@@ -229,7 +337,8 @@ export default function AdminPage() {
       });
 
       const metaBody = await metaRes.json();
-      if (!metaRes.ok) throw new Error(metaBody.error || "Failed to save metadata");
+      if (!metaRes.ok)
+        throw new Error(metaBody.error || "Failed to save metadata");
 
       if (metaBody.gallery) setGallery(metaBody.gallery);
       if (metaBody.slider) setHeroGallery(metaBody.slider);
@@ -264,7 +373,11 @@ export default function AdminPage() {
       const res = await fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ renameEvent: true, oldName: current, newName: newKey }),
+        body: JSON.stringify({
+          renameEvent: true,
+          oldName: current,
+          newName: newKey,
+        }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Server refused rename");
@@ -277,7 +390,8 @@ export default function AdminPage() {
   }
 
   // -----------------------
-  // delete entire event
+  // Delete entire event
+  // (API route handles Cloudinary deletion for each image's public_id)
   // -----------------------
   async function handleDeleteEvent(ev) {
     if (!ev) return alert("Select an event to delete.");
@@ -285,65 +399,70 @@ export default function AdminPage() {
       return alert("Cannot delete the home slider here.");
     }
     if (!confirm(`Delete entire event '${ev}' and all its photos?`)) return;
-    updateStatus("Deleting event...", "info");
+    updateStatus("Deleting event and all images...", "info");
     try {
       const res = await fetch(API, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventName: ev, deleteEvent: true, hero: false }),
+        body: JSON.stringify({
+          eventName: ev,
+          deleteEvent: true,
+          hero: false,
+        }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Delete failed");
-      setGallery(body.gallery || (await loadGallery()) || {});
+      setGallery(body.gallery || {});
       setHeroGallery(body.slider || body.home_slider || []);
       setSelectedEvent("");
-      updateStatus(`Deleted ${ev}`, "success");
+      updateStatus(`Deleted event "${ev}" and all its images`, "success");
     } catch (err) {
       updateStatus("Error: " + (err.message || String(err)), "error");
     }
   }
 
   // -----------------------
-  // delete single image
+  // Delete single image
+  // Sends public_id so API can delete from Cloudinary too
   // -----------------------
-  async function deleteImageFromServer(event, url, opts = { hero: false }) {
-    let targetUrl = typeof url === "string" && url.trim() ? url : null;
+  async function deleteImageFromServer(event, imgObj, opts = { hero: false }) {
+    // imgObj can be a string URL or an image object {original, public_id, ...}
+    let targetUrl = "";
+    let targetPublicId = null;
 
-    if (!targetUrl && event && gallery[event] && Array.isArray(gallery[event])) {
-      for (const it of gallery[event]) {
-        const u = getImgUrl(it);
-        if (u) {
-          targetUrl = u;
-          break;
-        }
-        if (it && it.url) {
-          targetUrl = it.url;
+    if (typeof imgObj === "string") {
+      targetUrl = imgObj;
+    } else if (imgObj && typeof imgObj === "object") {
+      targetUrl =
+        imgObj.original || imgObj.optimized || imgObj.thumb || imgObj.url || "";
+      targetPublicId = imgObj.public_id || null;
+    }
+
+    // If we only have URL, try to find the full object in gallery for public_id
+    if (!targetPublicId) {
+      const searchList = opts.hero
+        ? heroGallery
+        : gallery[event] || [];
+
+      for (const it of searchList) {
+        const itUrl =
+          typeof it === "string"
+            ? it
+            : it?.original || it?.optimized || it?.thumb || it?.url || "";
+        if (itUrl && itUrl === targetUrl) {
+          targetPublicId = it?.public_id || null;
           break;
         }
       }
     }
 
-    if (!targetUrl && (opts.hero || HERO_KEYS.has(event))) {
-      for (const it of heroGallery || []) {
-        const u = getImgUrl(it);
-        if (u) {
-          targetUrl = u;
-          break;
-        }
-        if (it && it.url) {
-          targetUrl = it.url;
-          break;
-        }
-      }
+    if (!targetUrl && !targetPublicId) {
+      return alert("No image URL or ID provided to delete.");
     }
 
-    if (!targetUrl) {
-      return alert("No image URL provided to delete.");
-    }
+    if (!confirm("Remove this image? This will also delete it.")) return;
 
-    if (!confirm("Remove this image / link?")) return;
-
-    updateStatus("Removing...", "info");
+    updateStatus("Removing from dashboard ...", "info");
     try {
       const res = await fetch(API, {
         method: "DELETE",
@@ -351,6 +470,7 @@ export default function AdminPage() {
         body: JSON.stringify({
           eventName: opts.hero ? "home_slider" : event,
           url: targetUrl,
+          public_id: targetPublicId,
           hero: !!opts.hero,
         }),
       });
@@ -363,30 +483,33 @@ export default function AdminPage() {
         throw new Error("Invalid server response");
       }
 
-      if (!res.ok) throw new Error(body?.error || `Delete failed (status ${res.status})`);
+      if (!res.ok)
+        throw new Error(body?.error || `Delete failed (status ${res.status})`);
 
-      setGallery(body.gallery || (await loadGallery()) || {});
+      setGallery(body.gallery || {});
       setHeroGallery(body.slider || body.home_slider || []);
-      updateStatus("Removed successfully", "success");
+      updateStatus("Removed successfully from dashboard", "success");
     } catch (err) {
       updateStatus("Error: " + (err.message || String(err)), "error");
     }
   }
 
   // -----------------------
-  // hero upload
+  // Hero upload
   // -----------------------
   async function handleHeroUpload() {
-    if (!heroFiles || heroFiles.length === 0) return alert("Select hero images first.");
+    if (!heroFiles || heroFiles.length === 0)
+      return alert("Select hero images first.");
     const validHero = heroFiles.filter(isValidImageFile);
     const invalidHeroCount = heroFiles.length - validHero.length;
     if (invalidHeroCount > 0) {
       updateStatus(
-        `Rejected ${invalidHeroCount} hero file(s). Allowed: ${allowedExts.join(", ") || "images"}`,
+        `Rejected ${invalidHeroCount} hero file(s). Only images allowed.`,
         "error"
       );
     }
-    if (validHero.length === 0) return alert("No valid hero image files to upload.");
+    if (validHero.length === 0)
+      return alert("No valid hero image files to upload.");
     setHeroUploading(true);
     updateStatus("Uploading hero images...", "info");
     try {
@@ -395,29 +518,40 @@ export default function AdminPage() {
       for (const f of validHero) {
         updateStatus(`Uploading hero ${i}/${validHero.length}...`, "info");
         const uploadRes = await uploadToCloudinary(f, `slider`);
-        uploaded.push({ url: uploadRes.secure_url, public_id: uploadRes.public_id });
+        uploaded.push({
+          url: uploadRes.secure_url,
+          public_id: uploadRes.public_id,
+        });
         i++;
       }
 
       const metaRes = await fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uploaded, hero: true, eventName: "home_slider" }),
+        body: JSON.stringify({
+          uploaded,
+          hero: true,
+          eventName: "home_slider",
+        }),
       });
 
       let metaBody = {};
       try {
         metaBody = await metaRes.json();
       } catch (e) {
-        console.warn("handleHeroUpload: non-JSON response, reloading gallery", e);
+        console.warn(
+          "handleHeroUpload: non-JSON response, reloading gallery",
+          e
+        );
         await loadGallery();
         setHeroFiles([]);
         setHeroPreview(EXAMPLE_LOCAL_PATH);
-        updateStatus("Hero uploaded (server returned non-JSON)", "success");
+        updateStatus("Hero uploaded successfully", "success");
         return;
       }
 
-      if (!metaRes.ok) throw new Error(metaBody.error || "Hero metadata save failed");
+      if (!metaRes.ok)
+        throw new Error(metaBody.error || "Hero metadata save failed");
 
       if (metaBody.slider || metaBody.home_slider) {
         setHeroGallery(metaBody.slider || metaBody.home_slider || []);
@@ -442,7 +576,7 @@ export default function AdminPage() {
     const rejected = list.length - valid.length;
     if (rejected > 0)
       updateStatus(
-        `Rejected ${rejected} hero file(s). Allowed: ${allowedExts.join(", ") || "images"}`,
+        `Rejected ${rejected} hero file(s). Only images allowed.`,
         "error"
       );
     setHeroFiles(valid);
@@ -457,10 +591,6 @@ export default function AdminPage() {
     }
     if (!isValidImageFile(f)) {
       setSingleFile(null);
-      updateStatus(
-        "Invalid file selected. Allowed types: " + (allowedExts.join(", ") || "images"),
-        "error"
-      );
       return;
     }
     setSingleFile(f);
@@ -472,7 +602,7 @@ export default function AdminPage() {
     const rejected = list.length - valid.length;
     if (rejected > 0)
       updateStatus(
-        `Rejected ${rejected} file(s). Allowed: ${allowedExts.join(", ") || "images"}`,
+        `Rejected ${rejected} file(s). Only images allowed.`,
         "error"
       );
     setFiles(valid);
@@ -512,7 +642,10 @@ export default function AdminPage() {
       urls = [single];
     }
 
-    updateStatus(`Adding ${urls.length} YouTube link(s) to "${en}"...`, "info");
+    updateStatus(
+      `Adding ${urls.length} YouTube link(s) to "${en}"...`,
+      "info"
+    );
 
     const failures = [];
     let lastBody = null;
@@ -536,7 +669,9 @@ export default function AdminPage() {
         }
 
         if (!res.ok) {
-          throw new Error(body?.error || `Failed to add URL (status ${res.status})`);
+          throw new Error(
+            body?.error || `Failed to add URL (status ${res.status})`
+          );
         }
 
         lastBody = body;
@@ -550,7 +685,9 @@ export default function AdminPage() {
       if (lastBody) {
         const newGallery = lastBody.gallery ?? lastBody ?? {};
         setGallery(newGallery);
-        setHeroGallery(lastBody.slider ?? lastBody.home_slider ?? heroGallery);
+        setHeroGallery(
+          lastBody.slider ?? lastBody.home_slider ?? heroGallery
+        );
       } else {
         await loadGallery();
       }
@@ -563,7 +700,10 @@ export default function AdminPage() {
       setEventName("");
       setYoutubeUrls("");
     } else {
-      updateStatus(`Added ${urls.length - failures.length}/${urls.length} — ${failures.length} failed`, "error");
+      updateStatus(
+        `Added ${urls.length - failures.length}/${urls.length} — ${failures.length} failed`,
+        "error"
+      );
     }
   }
 
@@ -601,14 +741,24 @@ export default function AdminPage() {
   }
 
   const youtubeFolders = Object.entries(gallery).filter(
-    ([k, items]) => Array.isArray(items) && items.length > 0 && items[0]?.youtube === true
+    ([k, items]) =>
+      Array.isArray(items) && items.length > 0 && items[0]?.youtube === true
   );
 
   // Status icon component
   const StatusIcon = () => {
     if (statusType === "success") return <FaCheck className="text-green-400" />;
-    if (statusType === "error") return <UseAnimations animation={alertCircle} size={20} strokeColor="#f87171" />;
-    return <UseAnimations animation={loading2} size={20} strokeColor="#f8d46a" />;
+    if (statusType === "error")
+      return (
+        <UseAnimations
+          animation={alertCircle}
+          size={20}
+          strokeColor="#f87171"
+        />
+      );
+    return (
+      <UseAnimations animation={loading2} size={20} strokeColor="#f8d46a" />
+    );
   };
 
   if (!isMounted) {
@@ -637,8 +787,12 @@ export default function AdminPage() {
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-[#f7e7b7] mb-2">Admin Dashboard</h1>
-              <div className="text-sm text-[#d5c08a]">AR Foundation — Event Photos Management</div>
+              <h1 className="text-3xl font-bold text-[#f7e7b7] mb-2">
+                Admin Dashboard
+              </h1>
+              <div className="text-sm text-[#d5c08a]">
+                AR Foundation — Event Photos Management
+              </div>
             </div>
             <motion.button
               onClick={handleLogout}
@@ -706,9 +860,21 @@ export default function AdminPage() {
                   <FaUpload className="text-2xl text-[#f8d46a]" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[#f7e7b7]">Upload Event Photos</h2>
-                  <div className="text-sm text-[#d5c08a]">Add images to existing or new events</div>
+                  <h2 className="text-xl font-bold text-[#f7e7b7]">
+                    Upload Event Photos
+                  </h2>
+                  <div className="text-sm text-[#d5c08a]">
+                    Add images to existing or new events
+                  </div>
                 </div>
+              </div>
+
+              {/* Size Warning */}
+              <div className="mb-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 text-sm flex items-center gap-2">
+                <span>⚠️</span>
+                <span>
+                  Files over 9MB are automatically compressed. Max raw size: 50MB.
+                </span>
               </div>
 
               <form onSubmit={handleFilesUpload} className="space-y-5">
@@ -729,7 +895,9 @@ export default function AdminPage() {
                       onChange={() => setUseExisting(true)}
                       className="accent-[#f8d46a]"
                     />
-                    <span className="text-[#f5f5f1] font-semibold">Use Existing</span>
+                    <span className="text-[#f5f5f1] font-semibold">
+                      Use Existing
+                    </span>
                   </motion.label>
 
                   <motion.label
@@ -747,14 +915,18 @@ export default function AdminPage() {
                       onChange={() => setUseExisting(false)}
                       className="accent-[#f8d46a]"
                     />
-                    <span className="text-[#f5f5f1] font-semibold">Create New</span>
+                    <span className="text-[#f5f5f1] font-semibold">
+                      Create New
+                    </span>
                   </motion.label>
                 </div>
 
                 {/* Event Selection/Creation */}
                 {useExisting ? (
                   <div>
-                    <label className="block text-sm font-semibold text-[#d5c08a] mb-2">Select Event</label>
+                    <label className="block text-sm font-semibold text-[#d5c08a] mb-2">
+                      Select Event
+                    </label>
                     <select
                       value={selectedEvent}
                       onChange={(e) => setSelectedEvent(e.target.value)}
@@ -770,7 +942,9 @@ export default function AdminPage() {
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-sm font-semibold text-[#d5c08a] mb-2">New Event Name</label>
+                    <label className="block text-sm font-semibold text-[#d5c08a] mb-2">
+                      New Event Name
+                    </label>
                     <input
                       value={eventName}
                       onChange={(e) => setEventName(e.target.value)}
@@ -791,6 +965,17 @@ export default function AdminPage() {
                     onChange={onSingleFileChange}
                     className="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-gradient-to-r file:from-[#c9a35e] file:to-[#f8d46a] file:text-black file:font-semibold hover:file:cursor-pointer"
                   />
+                  {singleFile && (
+                    <div className="text-xs text-[#d5c08a] mt-1">
+                      Selected: {singleFile.name} (
+                      {(singleFile.size / 1024 / 1024).toFixed(2)}MB)
+                      {singleFile.size > 9 * 1024 * 1024 && (
+                        <span className="text-yellow-400 ml-2">
+                          — will be compressed
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="text-center">
@@ -809,7 +994,14 @@ export default function AdminPage() {
                     onChange={onMultipleFilesChange}
                     className="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-gradient-to-r file:from-[#c9a35e] file:to-[#f8d46a] file:text-black file:font-semibold hover:file:cursor-pointer"
                   />
-                  <div className="text-xs text-[#d5c08a] mt-2">{files.length} file(s) selected</div>
+                  <div className="text-xs text-[#d5c08a] mt-2">
+                    {files.length} file(s) selected
+                    {files.some((f) => f.size > 9 * 1024 * 1024) && (
+                      <span className="text-yellow-400 ml-2">
+                        — some will be compressed
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
@@ -880,10 +1072,18 @@ export default function AdminPage() {
                       const embed = youTubeEmbedSrc(url);
                       const title = item?.title || `Video ${i + 1}`;
                       return (
-                        <div key={i} className="glass-card p-4 border border-[#c9a35e]/20">
-                          <div className="font-semibold text-[#f5f5f1] mb-3">{title}</div>
+                        <div
+                          key={i}
+                          className="glass-card p-4 border border-[#c9a35e]/20"
+                        >
+                          <div className="font-semibold text-[#f5f5f1] mb-3">
+                            {title}
+                          </div>
                           {embed ? (
-                            <div className="relative" style={{ paddingTop: "56.25%" }}>
+                            <div
+                              className="relative"
+                              style={{ paddingTop: "56.25%" }}
+                            >
                               <iframe
                                 src={embed}
                                 title={title}
@@ -894,7 +1094,9 @@ export default function AdminPage() {
                             </div>
                           ) : (
                             <div className="w-full h-48 bg-gray-800 flex items-center justify-center rounded-lg">
-                              <span className="text-sm text-gray-400">Invalid URL</span>
+                              <span className="text-sm text-gray-400">
+                                Invalid URL
+                              </span>
                             </div>
                           )}
                           <div className="mt-3 flex items-center justify-between">
@@ -908,7 +1110,9 @@ export default function AdminPage() {
                               <span>Open</span>
                             </a>
                             <button
-                              onClick={() => deleteImageFromServer(selectedEvent, url)}
+                              onClick={() =>
+                                deleteImageFromServer(selectedEvent, url)
+                              }
                               className="text-sm text-red-400 hover:text-red-300 underline flex items-center gap-1"
                             >
                               <FaTrash />
@@ -933,10 +1137,16 @@ export default function AdminPage() {
                             whileHover={{ y: -5 }}
                           >
                             {src ? (
-                              <img src={src} alt={`img-${i}`} className="w-full h-40 object-cover" />
+                              <img
+                                src={src}
+                                alt={`img-${i}`}
+                                className="w-full h-40 object-cover"
+                              />
                             ) : (
                               <div className="w-full h-40 bg-gray-800 flex items-center justify-center">
-                                <span className="text-sm text-gray-400">No preview</span>
+                                <span className="text-sm text-gray-400">
+                                  No preview
+                                </span>
                               </div>
                             )}
                             <div className="p-3 flex items-center justify-between">
@@ -950,7 +1160,10 @@ export default function AdminPage() {
                                 <span>View</span>
                               </a>
                               <button
-                                onClick={() => deleteImageFromServer(selectedEvent, url)}
+                                onClick={() =>
+                                  // Pass full img object so public_id is available
+                                  deleteImageFromServer(selectedEvent, img)
+                                }
                                 className="text-sm text-red-400 hover:text-red-300 underline flex items-center gap-1"
                               >
                                 <FaTrash />
@@ -992,7 +1205,9 @@ export default function AdminPage() {
 
             <div className="space-y-2 max-h-[70vh] overflow-auto pr-2 scrollbar-custom">
               {events.length === 0 && (
-                <div className="text-sm text-[#d5c08a] text-center py-8">No events yet</div>
+                <div className="text-sm text-[#d5c08a] text-center py-8">
+                  No events yet
+                </div>
               )}
 
               {events.map((ev) => (
@@ -1009,10 +1224,18 @@ export default function AdminPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-semibold text-[#f5f5f1]">{ev.replace(/_/g, " ")}</div>
-                      <div className="text-xs text-[#d5c08a] mt-1">{safeCount(ev)} photos</div>
+                      <div className="font-semibold text-[#f5f5f1]">
+                        {ev.replace(/_/g, " ")}
+                      </div>
+                      <div className="text-xs text-[#d5c08a] mt-1">
+                        {safeCount(ev)} photos
+                      </div>
                     </div>
-                    <FaChevronRight className={`text-[#f8d46a] transition-transform ${selectedEvent === ev ? 'rotate-90' : ''}`} />
+                    <FaChevronRight
+                      className={`text-[#f8d46a] transition-transform ${
+                        selectedEvent === ev ? "rotate-90" : ""
+                      }`}
+                    />
                   </div>
                 </motion.div>
               ))}
@@ -1032,8 +1255,12 @@ export default function AdminPage() {
               <FaHome className="text-2xl text-[#f8d46a]" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-[#f7e7b7]">Home Carousel Images</h3>
-              <div className="text-sm text-[#d5c08a]">Upload images for the hero section on homepage</div>
+              <h3 className="text-xl font-bold text-[#f7e7b7]">
+                Home Carousel Images
+              </h3>
+              <div className="text-sm text-[#d5c08a]">
+                Upload images for the hero section on homepage
+              </div>
             </div>
           </div>
 
@@ -1042,12 +1269,22 @@ export default function AdminPage() {
             <div>
               <div className="w-full h-48 bg-gray-800 rounded-xl overflow-hidden mb-4">
                 {heroPreview ? (
-                  <img src={heroPreview} className="w-full h-full object-cover" alt="hero preview" />
+                  <img
+                    src={heroPreview}
+                    className="w-full h-full object-cover"
+                    alt="hero preview"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">
                     No preview
                   </div>
                 )}
+              </div>
+
+              {/* Size Warning for Hero */}
+              <div className="mb-3 p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 text-xs flex items-center gap-1">
+                <span>⚠️</span>
+                <span>Files over 9MB will be compressed automatically</span>
               </div>
 
               <input
@@ -1058,18 +1295,30 @@ export default function AdminPage() {
                 className="w-full px-4 py-3 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-gradient-to-r file:from-[#c9a35e] file:to-[#f8d46a] file:text-black file:font-semibold hover:file:cursor-pointer mb-2"
               />
 
-              <div className="text-xs text-[#d5c08a] mb-4">{heroFiles.length} file(s) selected</div>
+              <div className="text-xs text-[#d5c08a] mb-4">
+                {heroFiles.length} file(s) selected
+                {heroFiles.some((f) => f.size > 9 * 1024 * 1024) && (
+                  <span className="text-yellow-400 ml-2">
+                    — some will be compressed
+                  </span>
+                )}
+              </div>
 
               <div className="flex flex-col gap-3">
                 <motion.button
                   onClick={handleHeroUpload}
                   disabled={heroUploading}
                   className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#c9a35e] to-[#f8d46a] text-black font-bold shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  whileHover={{ scale: heroUploading ? 1 : 1.03, y: heroUploading ? 0 : -2 }}
+                  whileHover={{
+                    scale: heroUploading ? 1 : 1.03,
+                    y: heroUploading ? 0 : -2,
+                  }}
                   whileTap={{ scale: heroUploading ? 1 : 0.98 }}
                 >
                   <FaHome />
-                  <span>{heroUploading ? "Uploading..." : "Upload to Carousel"}</span>
+                  <span>
+                    {heroUploading ? "Uploading..." : "Upload to Carousel"}
+                  </span>
                 </motion.button>
 
                 <motion.button
@@ -1088,11 +1337,15 @@ export default function AdminPage() {
 
             {/* Current Hero Images */}
             <div className="lg:col-span-2">
-              <h4 className="text-lg font-bold text-[#f7e7b7] mb-4">Current Hero Images</h4>
+              <h4 className="text-lg font-bold text-[#f7e7b7] mb-4">
+                Current Hero Images
+              </h4>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {heroGallery.length === 0 && (
-                  <div className="col-span-full text-center text-[#d5c08a] py-8">No hero images yet</div>
+                  <div className="col-span-full text-center text-[#d5c08a] py-8">
+                    No hero images yet
+                  </div>
                 )}
 
                 {heroGallery.map((h, i) => {
@@ -1105,10 +1358,16 @@ export default function AdminPage() {
                       whileHover={{ y: -5 }}
                     >
                       {src ? (
-                        <img src={src} className="w-full h-32 object-cover" alt={`hero-${i}`} />
+                        <img
+                          src={src}
+                          className="w-full h-32 object-cover"
+                          alt={`hero-${i}`}
+                        />
                       ) : (
                         <div className="w-full h-32 bg-gray-800 flex items-center justify-center">
-                          <span className="text-sm text-gray-400">No preview</span>
+                          <span className="text-sm text-gray-400">
+                            No preview
+                          </span>
                         </div>
                       )}
                       <div className="p-3 flex items-center justify-between">
@@ -1122,7 +1381,12 @@ export default function AdminPage() {
                           <span>View</span>
                         </a>
                         <button
-                          onClick={() => deleteImageFromServer("home_slider", url, { hero: true })}
+                          onClick={() =>
+                            // Pass full hero object for public_id
+                            deleteImageFromServer("home_slider", h, {
+                              hero: true,
+                            })
+                          }
                           className="text-sm text-red-400 hover:text-red-300 underline flex items-center gap-1"
                         >
                           <FaTrash />
@@ -1149,8 +1413,12 @@ export default function AdminPage() {
               <FaYoutube className="text-2xl text-[#f8d46a]" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-[#f7e7b7]">YouTube Videos</h3>
-              <div className="text-sm text-[#d5c08a]">Add YouTube links to events</div>
+              <h3 className="text-xl font-bold text-[#f7e7b7]">
+                YouTube Videos
+              </h3>
+              <div className="text-sm text-[#d5c08a]">
+                Add YouTube links to events
+              </div>
             </div>
           </div>
 
@@ -1171,7 +1439,11 @@ export default function AdminPage() {
                 Add YouTube
               </motion.button>
               <motion.button
-                onClick={() => { setEventName(""); setYoutubeUrls(""); updateStatus("", "info"); }}
+                onClick={() => {
+                  setEventName("");
+                  setYoutubeUrls("");
+                  updateStatus("", "info");
+                }}
                 className="px-6 py-3 rounded-xl bg-black/40 border-2 border-[#c9a35e]/30 text-[#f5f5f1] font-semibold hover:bg-[#c9a35e]/20 transition-all duration-300"
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
@@ -1189,7 +1461,9 @@ export default function AdminPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {youtubeFolders.length === 0 && (
-                <div className="col-span-full text-center text-[#d5c08a] py-8">No YouTube links yet</div>
+                <div className="col-span-full text-center text-[#d5c08a] py-8">
+                  No YouTube links yet
+                </div>
               )}
 
               {youtubeFolders.map(([folder, items]) => {
@@ -1201,13 +1475,21 @@ export default function AdminPage() {
                     className="glass-card p-4 border border-[#c9a35e]/20"
                     whileHover={{ y: -5 }}
                   >
-                    <div className="font-semibold text-[#f5f5f1] mb-3">{folder.replace(/_/g, " ")}</div>
+                    <div className="font-semibold text-[#f5f5f1] mb-3">
+                      {folder.replace(/_/g, " ")}
+                    </div>
                     <div className="h-40 mb-3 rounded-lg overflow-hidden">
                       {thumb ? (
-                        <img src={thumb} alt={`yt-${folder}`} className="w-full h-full object-cover" />
+                        <img
+                          src={thumb}
+                          alt={`yt-${folder}`}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                          <span className="text-sm text-gray-400">No thumbnail</span>
+                          <span className="text-sm text-gray-400">
+                            No thumbnail
+                          </span>
                         </div>
                       )}
                     </div>
@@ -1221,7 +1503,9 @@ export default function AdminPage() {
                         Open Link
                       </a>
                       <button
-                        onClick={() => deleteImageFromServer(folder, url)}
+                        onClick={() =>
+                          deleteImageFromServer(folder, url)
+                        }
                         className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-semibold hover:bg-red-500/30 transition-all"
                       >
                         Remove

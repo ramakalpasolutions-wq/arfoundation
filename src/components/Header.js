@@ -1,4 +1,3 @@
-// src/app/components/Header.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,9 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import UseAnimations from "react-useanimations";
-import { Alex_Brush } from "next/font/google";
+import { Pinyon_Script } from "next/font/google";
 
-const alexBrush = Alex_Brush({
+const pinyonScript = Pinyon_Script({
   subsets: ["latin"],
   weight: "400",
 });
@@ -24,27 +23,50 @@ export default function Header() {
   return (
 <header className="w-full z-50 fixed top-0 left-0 bg-gradient-to-br from-[#1a1a1a] via-[#3d2b1f] to-[#c9a35e]">
       {/* DESKTOP */}
-      <div className="hidden  lg:flex items-center justify-between p-6 sticky top-0 z-40">
+      <div className="hidden lg:flex items-center justify-between p-6 sticky top-0 z-40">
         
         <div className="flex items-center gap-1">
           <img
             src="/turst-logo (2).png"
             alt="Logo"
-            className="w-25 h-25 ml-9  rounded-md object-cover"
+            className="w-25 h-25 ml-9 rounded-md object-cover"
           />
 
-      <Link
-  href="/"
-  className="inline-block text-3xl bg-gradient-to-r from-[#c9a35e] via-[#e8d39f] to-[#f7e7b7] bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(0,0,0,0.3)]"
->
-  <span className={`${alexBrush.className} text-5xl`} style={{fontWeight:"bold"}}>
-  AR
-</span>{" "} 
-  <span className="font-serif font-semibold tracking-wide">
-    Foundation
-  </span>
-</Link>
-
+          <Link
+            href="/"
+            className="inline-flex items-center drop-shadow-[0_0_8px_rgba(0,0,0,0.3)]"
+          >
+           <span
+            className={pinyonScript.className}
+            style={{
+              fontSize: "3.8rem",
+              lineHeight: 1.6,
+              paddingTop: "0.5rem",
+              paddingBottom: "0.5rem",
+              fontWeight: "bold",
+              background: "linear-gradient(to right, #c9a35e, #e8d39f, #f7e7b7)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              display: "inline-block",
+              overflow: "visible",
+              letterSpacing: "0.05em",
+            }}
+          >
+            AR
+          </span> 
+            <span
+              className="font-serif font-semibold tracking-wide text-3xl ml-1"
+              style={{
+                background: "linear-gradient(to right, #c9a35e, #e8d39f, #f7e7b7)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Foundation
+            </span>
+          </Link>
         </div>
 
         <nav className="flex items-center gap-6">
@@ -74,16 +96,37 @@ export default function Header() {
 
       {/* MOBILE */}
       <div className="lg:hidden fixed top-1 left-1/2 -translate-x-1/2 w-[98%] z-10">
-        <div className="bg-gradient-to-r from-[#1a1a1a] via-[#3d2b1f] to-[#c9a35e] backdrop-blur-xl  px-3 py-4 shadow flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#1a1a1a] via-[#3d2b1f] to-[#c9a35e] backdrop-blur-xl px-3 py-4 shadow flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img
-              src="/turst-logo.webp"
+              src="/turst-logo (2).png"
               alt="Logo"
-              className="w-20 h-10 rounded-md object-cover"
+              className="w-15 h-15 rounded-md object-cover"
             />
 
-            <Link href="/" className="text-base sm:text-lg font-serif font-bold text-[#f7e7b7]">
-              AR Foundation
+            <Link href="/" className="inline-flex items-center gap-1">
+              <span
+                className={pinyonScript.className}
+                style={{
+                  fontSize: "2.6rem",
+                  lineHeight: 1.6,
+                  paddingTop: "0.4rem",
+                  paddingBottom: "0.4rem",
+                  fontWeight: "bold",
+                  background: "linear-gradient(to right, #c9a35e, #e8d39f, #f7e7b7)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  display: "inline-block",
+                  overflow: "visible",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                AR
+              </span>
+              <span className="text-base sm:text-lg font-serif font-bold text-[#f7e7b7]">
+                Foundation
+              </span>
             </Link>
           </div>
 
